@@ -47,6 +47,7 @@ export default function ConfigPanel({
           <label className="text-foreground mb-2 block text-sm font-medium">
             상위 포지션 트래킹 수 (Top N)
           </label>
+
           <input
             type="number"
             min="1"

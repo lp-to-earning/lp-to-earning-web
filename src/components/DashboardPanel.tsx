@@ -27,7 +27,17 @@ export default function DashboardPanel({ config }: { config: ConfigData }) {
   return (
     <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
       {/* 봇 가동 현황 */}
-      <Card title="봇 가동 현황">
+      <Card
+        title="봇 가동 현황"
+        rightElement={
+          <Link
+            href="/positions"
+            className="text-muted-foreground hover:text-foreground flex cursor-pointer items-center gap-1 text-sm font-medium transition-all duration-200"
+          >
+            내 포지션 <ChevronRight className="h-4 w-4" />
+          </Link>
+        }
+      >
         <div className="space-y-4">
           <CardContent
             icon={Play}
