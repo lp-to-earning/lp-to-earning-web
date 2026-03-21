@@ -6,11 +6,15 @@ export const getConfig = async (token: string): Promise<Config> => {
   const { data } = await axios.get<ConfigResponse>(`${API_HOST}/config`, {
     headers: { Authorization: `Bearer ${token}` },
   });
-  
-  const sanitizeArr = (val: any) => {
+
+  const sanitizeArr = (val: unknown) => {
     let arr = [];
     if (typeof val === "string") {
-      try { arr = JSON.parse(val); } catch { arr = []; }
+      try {
+        arr = JSON.parse(val);
+      } catch {
+        arr = [];
+      }
     } else if (Array.isArray(val)) {
       arr = val;
     }

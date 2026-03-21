@@ -1,6 +1,19 @@
-import axios from "axios";
+"use server";
+
+import { exec } from "child_process";
+import { promisify } from "util";
+
+const execAsync = promisify(exec);
 
 export const getPositions = async (): Promise<Position[]> => {
-  const { data } = await axios.get<PositionsResponse>("/api/positions");
-  return data?.data?.positions || data?.positions || [];
+  try {
+    const { stdout } = await execAsync(
+      "byreal-cli positions list -o json --non-interactive",
+    );
+    const parsedData = JSON.parse(stdout);
+    return parsedData?.data?.positions || parsedData?.positions || [];
+  } catch (error) {
+    console.error("Failed to execute byreal-cli positions:", error);
+    return [];
+  }
 };
