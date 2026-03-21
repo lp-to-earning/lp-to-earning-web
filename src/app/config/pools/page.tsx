@@ -143,56 +143,56 @@ export default function PoolSelectionPage() {
     pools?.reduce((sum, p) => sum + (p.volume_24h_usd || 0), 0) || 0;
 
   return (
-    <main className="h-[100dvh] bg-black text-foreground antialiased relative overflow-hidden flex flex-col items-center">
+    <main className="text-foreground relative flex h-[100dvh] flex-col items-center overflow-hidden bg-black antialiased">
       {/* 🔮 뒷배경 글로우 조명 */}
-      <div className="absolute top-[-20%] left-[-10%] w-[500px] h-[500px] bg-indigo-500/10 rounded-full blur-[120px] pointer-events-none" />
+      <div className="pointer-events-none absolute top-[-20%] left-[-10%] h-[500px] w-[500px] rounded-full bg-indigo-500/10 blur-[120px]" />
 
-      <div className="w-full max-w-6xl z-10 flex-1 flex flex-col min-h-0">
+      <div className="z-10 flex min-h-0 w-full max-w-6xl flex-1 flex-col">
         {/* 상단 고정 영역 (스크롤 무관) */}
-        <div className="flex-none pt-8 px-6 sm:px-12 sm:pt-12 pb-4 space-y-6">
+        <div className="flex-none space-y-6 px-6 pt-8 pb-4 sm:px-12 sm:pt-12">
           {/* 🧭 헤더 */}
-          <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 pb-2 border-b border-border/10">
+          <div className="border-border/10 flex flex-col items-start justify-between gap-6 border-b pb-2 md:flex-row md:items-center">
             <div className="flex items-center gap-5">
               <Link href="/config">
-                <div className="w-12 h-12 rounded-2xl bg-white/5 border border-white/10 hover:bg-white/10 transition-all cursor-pointer flex items-center justify-center group shadow-lg">
+                <div className="group flex h-12 w-12 cursor-pointer items-center justify-center rounded-2xl border border-white/10 bg-white/5 shadow-lg transition-all hover:bg-white/10">
                   <ArrowLeft
                     size={20}
-                    className="text-white/70 group-hover:text-white transition-colors"
+                    className="text-white/70 transition-colors group-hover:text-white"
                   />
                 </div>
               </Link>
               <div>
-                <h1 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight drop-shadow-sm">
+                <h1 className="text-2xl font-extrabold tracking-tight text-white drop-shadow-sm sm:text-3xl">
                   유동성 풀 모니터링
                 </h1>
-                <p className="text-white/60 text-sm sm:text-base mt-1 font-medium">
+                <p className="mt-1 text-sm font-medium text-white/60 sm:text-base">
                   트래킹할 Liquidity Pool을 검색하고 설정해 보세요.
                 </p>
               </div>
             </div>
             <button
               onClick={handleSave}
-              className="w-full md:w-auto px-6 py-3.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-2xl font-bold transition-all shadow-[0_0_20px_rgba(79,70,229,0.3)] hover:shadow-[0_0_30px_rgba(79,70,229,0.5)] active:scale-95 cursor-pointer text-sm tracking-wide"
+              className="w-full cursor-pointer rounded-2xl bg-indigo-600 px-6 py-3.5 text-sm font-bold tracking-wide text-white shadow-[0_0_20px_rgba(79,70,229,0.3)] transition-all hover:bg-indigo-500 hover:shadow-[0_0_30px_rgba(79,70,229,0.5)] active:scale-95 md:w-auto"
             >
               선택 항목 적용 및 저장
             </button>
           </div>
 
           {/* 📊 한눈에 보는 데이터 대시보드 배너 */}
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
             <motion.div
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
-              className="glass ghost-border p-5 rounded-3xl flex items-center gap-4"
+              className="glass ghost-border flex items-center gap-4 rounded-3xl p-5"
             >
-              <div className="p-3 rounded-2xl bg-indigo-500/10 text-indigo-400">
+              <div className="rounded-2xl bg-indigo-500/10 p-3 text-indigo-400">
                 <Waves size={24} />
               </div>
               <div>
-                <p className="text-xs text-muted-foreground font-medium">
+                <p className="text-muted-foreground text-xs font-medium">
                   총 제공 유동성 풀
                 </p>
-                <h4 className="text-xl font-bold font-mono text-foreground mt-1">
+                <h4 className="text-foreground mt-1 font-mono text-xl font-bold">
                   {pools?.length || 0} 개
                 </h4>
               </div>
@@ -201,16 +201,16 @@ export default function PoolSelectionPage() {
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.1 }}
-              className="glass ghost-border p-5 rounded-3xl flex items-center gap-4"
+              className="glass ghost-border flex items-center gap-4 rounded-3xl p-5"
             >
-              <div className="p-3 rounded-2xl bg-emerald-500/10 text-emerald-400">
+              <div className="rounded-2xl bg-emerald-500/10 p-3 text-emerald-400">
                 <TrendingUp size={24} />
               </div>
               <div>
-                <p className="text-xs text-muted-foreground font-medium">
+                <p className="text-muted-foreground text-xs font-medium">
                   최대 지원 APR 범위
                 </p>
-                <h4 className="text-xl font-bold font-mono text-emerald-400 mt-1">
+                <h4 className="mt-1 font-mono text-xl font-bold text-emerald-400">
                   {highestApr.toFixed(1)}%
                 </h4>
               </div>
@@ -219,16 +219,16 @@ export default function PoolSelectionPage() {
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.2 }}
-              className="glass ghost-border p-5 rounded-3xl flex items-center gap-4"
+              className="glass ghost-border flex items-center gap-4 rounded-3xl p-5"
             >
-              <div className="p-3 rounded-2xl bg-amber-500/10 text-amber-400">
+              <div className="rounded-2xl bg-amber-500/10 p-3 text-amber-400">
                 <DollarSign size={24} />
               </div>
               <div>
-                <p className="text-xs text-muted-foreground font-medium">
+                <p className="text-muted-foreground text-xs font-medium">
                   24h 전체 거래량
                 </p>
-                <h4 className="text-xl font-bold font-mono text-foreground mt-1">
+                <h4 className="text-foreground mt-1 font-mono text-xl font-bold">
                   ${Math.round(totalVolume).toLocaleString()}
                 </h4>
               </div>
@@ -236,7 +236,7 @@ export default function PoolSelectionPage() {
           </div>
 
           {/* 🕵️ 검색 바 및 정렬 */}
-          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+          <div className="flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-center">
             <SortButtonGroup
               items={sortItems}
               currentSort={currentSort}
@@ -248,23 +248,23 @@ export default function PoolSelectionPage() {
             <div className="relative w-full sm:max-w-sm">
               <Search
                 size={16}
-                className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground"
+                className="text-muted-foreground absolute top-1/2 left-4 -translate-y-1/2"
               />
               <input
                 type="text"
                 placeholder="풀 이름 검색 (예: SOL/USDC)"
                 value={searchQuery}
                 onChange={(e) => updateUrl("q", e.target.value)}
-                className="bg-muted/30 border border-border/30 rounded-2xl pl-10 pr-4 py-2.5 w-full text-sm outline-none focus:border-indigo-500/50 transition-all"
+                className="bg-muted/30 border-border/30 w-full rounded-2xl border py-2.5 pr-4 pl-10 text-sm transition-all outline-none focus:border-indigo-500/50"
               />
             </div>
           </div>
         </div>
 
         {/* 📋 카드 그리드 렌더링 섹션 (이곳만 스크롤) */}
-        <div className="flex-1 overflow-y-auto px-6 sm:px-12 pb-12 custom-scrollbar mask-image-bottom">
+        <div className="custom-scrollbar mask-image-bottom flex-1 overflow-y-auto px-6 pb-12 sm:px-12">
           {isPoolsLoading ? (
-            <div className="w-full h-full flex items-center justify-center flex-col text-muted-foreground gap-2">
+            <div className="text-muted-foreground flex h-full w-full flex-col items-center justify-center gap-2">
               <Loader className="animate-spin" size={32} />
               <p className="text-sm font-medium">
                 실시간 풀 목록 조회 및 불러오는 중...
@@ -273,7 +273,7 @@ export default function PoolSelectionPage() {
           ) : (
             <motion.div
               layout
-              className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5 p-2"
+              className="grid grid-cols-1 gap-5 p-2 md:grid-cols-2 lg:grid-cols-3"
             >
               {filteredPools?.map((pool) => {
                 const isSelected = selectedPools.includes(pool.id);
@@ -284,42 +284,42 @@ export default function PoolSelectionPage() {
                     layoutId={pool.id}
                     whileHover={{ scale: 1.02 }}
                     onClick={() => handleTogglePool(pool.id)}
-                    className={`glass ghost-border !border-opacity-50 hover:bg-muted/10 p-5 rounded-3xl relative cursor-pointer group transition-all duration-300 flex flex-col justify-between overflow-hidden ${
+                    className={`glass ghost-border !border-opacity-50 hover:bg-muted/10 group relative flex cursor-pointer flex-col justify-between overflow-hidden rounded-3xl p-5 transition-all duration-300 ${
                       isSelected
-                        ? "ring-2 ring-indigo-500 shadow-[0_0_50px_rgba(99,102,241,0.05)] bg-indigo-500/5"
+                        ? "bg-indigo-500/5 shadow-[0_0_50px_rgba(99,102,241,0.05)] ring-2 ring-indigo-500"
                         : ""
                     }`}
                   >
                     <div>
-                      <div className="flex justify-between items-start mb-4">
+                      <div className="mb-4 flex items-start justify-between">
                         <div className="flex items-center gap-2">
-                          <div className="relative w-8 h-8 flex items-center">
+                          <div className="relative flex h-8 w-8 items-center">
                             {pool.token_a.logo_uri ? (
                               <Image
                                 src={pool.token_a.logo_uri}
-                                className="w-6 h-6 rounded-full border border-black absolute left-0"
+                                className="absolute left-0 h-6 w-6 rounded-full border border-black"
                                 alt=""
                                 width={24}
                                 height={24}
                                 unoptimized={true}
                               />
                             ) : (
-                              <div className="w-6 h-6 rounded-full bg-slate-700 absolute left-0" />
+                              <div className="absolute left-0 h-6 w-6 rounded-full bg-slate-700" />
                             )}
                             {pool.token_b.logo_uri ? (
                               <Image
                                 src={pool.token_b.logo_uri}
-                                className="w-6 h-6 rounded-full border border-black absolute left-3.5 z-10"
+                                className="absolute left-3.5 z-10 h-6 w-6 rounded-full border border-black"
                                 alt=""
                                 width={24}
                                 height={24}
                                 unoptimized={true}
                               />
                             ) : (
-                              <div className="w-6 h-6 rounded-full bg-slate-400 absolute left-3.5 z-10" />
+                              <div className="absolute left-3.5 z-10 h-6 w-6 rounded-full bg-slate-400" />
                             )}
                           </div>
-                          <h3 className="text-sm font-bold text-foreground font-mono">
+                          <h3 className="text-foreground font-mono text-sm font-bold">
                             {pool.pair}
                           </h3>
                         </div>
@@ -331,21 +331,21 @@ export default function PoolSelectionPage() {
                       <div className="grid grid-cols-2 gap-2 text-xs">
                         <div>
                           <p className="text-muted-foreground">TVL</p>
-                          <p className="font-bold text-foreground mt-0.5">
+                          <p className="text-foreground mt-0.5 font-bold">
                             ${Math.round(pool.tvl_usd).toLocaleString()}
                           </p>
                         </div>
                         <div>
                           <p className="text-muted-foreground">Volume 24h</p>
-                          <p className="font-bold text-foreground mt-0.5">
+                          <p className="text-foreground mt-0.5 font-bold">
                             ${Math.round(pool.volume_24h_usd).toLocaleString()}
                           </p>
                         </div>
                       </div>
                     </div>
 
-                    <div className="mt-4 flex items-center justify-between border-t border-border/20 pt-4">
-                      <div className="flex-1 max-w-[120px] h-[40px] opacity-70 group-hover:opacity-100 group-hover:scale-[1.05] transition-all duration-300">
+                    <div className="border-border/20 mt-4 flex items-center justify-between border-t pt-4">
+                      <div className="h-[40px] max-w-[120px] flex-1 opacity-70 transition-all duration-300 group-hover:scale-[1.05] group-hover:opacity-100">
                         <svg
                           width="100%"
                           height="100%"
@@ -363,10 +363,10 @@ export default function PoolSelectionPage() {
                         </svg>
                       </div>
                       <div className="text-right">
-                        <p className="text-[10px] text-muted-foreground uppercase tracking-wider font-semibold">
+                        <p className="text-muted-foreground text-[10px] font-semibold tracking-wider uppercase">
                           Est. APR
                         </p>
-                        <p className="font-extrabold text-emerald-400 text-lg drop-shadow-[0_0_8px_rgba(52,211,153,0.3)]">
+                        <p className="text-lg font-extrabold text-emerald-400 drop-shadow-[0_0_8px_rgba(52,211,153,0.3)]">
                           {pool.apr.toFixed(1)}%
                         </p>
                       </div>

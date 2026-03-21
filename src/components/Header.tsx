@@ -10,13 +10,13 @@ interface HeaderProps {
 
 export default function Header({ token, connected, logout }: HeaderProps) {
   return (
-    <header className="flex flex-col sm:flex-row justify-between items-center glass ghost-border p-6 rounded-3xl mb-8 gap-4">
+    <header className="glass ghost-border mb-8 flex flex-col items-center justify-between gap-4 rounded-3xl p-6 sm:flex-row">
       <div className="flex items-center gap-3">
-        <div className="p-3 bg-gradient-to-br from-primary-500 to-primary-800 rounded-2xl shadow-lg">
+        <div className="from-primary-500 to-primary-800 rounded-2xl bg-gradient-to-br p-3 shadow-lg">
           <LayoutDashboard className="h-6 w-6 text-white" />
         </div>
         <div>
-          <h1 className="text-2xl font-black bg-gradient-to-r from-primary-500 to-primary-800 bg-clip-text text-transparent">
+          <h1 className="from-primary-500 to-primary-800 bg-gradient-to-r bg-clip-text text-2xl font-black text-transparent">
             lp-to-earning dashboard
           </h1>
           <p className="text-muted-foreground text-xs"></p>

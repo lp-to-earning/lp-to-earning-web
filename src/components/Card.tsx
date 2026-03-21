@@ -7,11 +7,18 @@ interface CardProps {
   className?: string;
 }
 
-export function Card({ title, rightElement, children, className = "" }: CardProps) {
+export function Card({
+  title,
+  rightElement,
+  children,
+  className = "",
+}: CardProps) {
   return (
-    <div className={`glass ghost-border p-6 rounded-3xl flex flex-col ${className}`}>
-      <div className="flex justify-between items-center mb-4">
-        <div className="text-sm font-bold text-muted-foreground uppercase tracking-wider flex items-center gap-1.5">
+    <div
+      className={`glass ghost-border flex flex-col rounded-3xl p-6 ${className}`}
+    >
+      <div className="mb-4 flex items-center justify-between">
+        <div className="text-muted-foreground flex items-center gap-1.5 text-sm font-bold tracking-wider uppercase">
           {title}
         </div>
         {rightElement}
@@ -39,14 +46,16 @@ export function CardContent({
   rightElement,
 }: CardContentProps) {
   return (
-    <div className="bg-muted/40 p-4 rounded-2xl flex items-center justify-between border border-border/50">
+    <div className="bg-muted/40 border-border/50 flex items-center justify-between rounded-2xl border p-4">
       <div className="flex items-center gap-4">
-        <div className={`h-10 w-10 ${iconBgClass} rounded-xl flex items-center justify-center ${iconColorClass}`}>
+        <div
+          className={`h-10 w-10 ${iconBgClass} flex items-center justify-center rounded-xl ${iconColorClass}`}
+        >
           <Icon size={18} />
         </div>
         <div>
           <p className="text-muted-foreground text-xs">{label}</p>
-          <p className="text-white font-bold text-sm mt-0.5">{value}</p>
+          <p className="mt-0.5 text-sm font-bold text-white">{value}</p>
         </div>
       </div>
       {rightElement}

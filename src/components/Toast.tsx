@@ -48,7 +48,7 @@ export default function Toast({
           animate={{ opacity: 1, y: 0, scale: 1 }}
           exit={{ opacity: 0, y: 20, scale: 0.9 }}
           transition={{ type: "spring", stiffness: 400, damping: 30 }}
-          className={`fixed bottom-10 left-1/2 -translate-x-1/2 z-50 backdrop-blur-md text-white px-6 py-3 rounded-2xl flex items-center gap-2 ghost-border font-medium text-sm ${styles[type]}`}
+          className={`ghost-border fixed bottom-10 left-1/2 z-50 flex -translate-x-1/2 items-center gap-2 rounded-2xl px-6 py-3 text-sm font-medium text-white backdrop-blur-md ${styles[type]}`}
         >
           {icons[type]}
           <span>{message}</span>

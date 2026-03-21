@@ -27,23 +27,24 @@ export default function ConfigPanel({
       title={
         <>
           <Settings className="text-muted-foreground h-5 w-5" />
-          <span className="text-lg font-bold normal-case">전략적 봇 상세 설정</span>
+          <span className="text-lg font-bold normal-case">
+            전략적 봇 상세 설정
+          </span>
         </>
       }
       rightElement={
         <button
           onClick={() => router.push("/")}
-          className="flex items-center gap-1.5 text-sm font-medium text-muted-foreground hover:text-foreground transition-all duration-200 cursor-pointer"
+          className="text-muted-foreground hover:text-foreground flex cursor-pointer items-center gap-1.5 text-sm font-medium transition-all duration-200"
         >
           <ArrowLeft className="h-4 w-4" /> 뒤로가기
         </button>
       }
       className="p-8"
     >
-
       <div className="space-y-6">
         <div>
-          <label className="block text-sm font-medium text-foreground mb-2">
+          <label className="text-foreground mb-2 block text-sm font-medium">
             상위 포지션 트래킹 수 (Top N)
           </label>
           <input
@@ -55,18 +56,18 @@ export default function ConfigPanel({
             onChange={(e) =>
               setConfig({ ...config, topN: parseInt(e.target.value) })
             }
-            className="w-full h-2 bg-muted rounded-lg appearance-none cursor-pointer accent-indigo-500"
+            className="bg-muted h-2 w-full cursor-pointer appearance-none rounded-lg accent-indigo-500"
           />
-          <div className="flex justify-between text-xs text-muted-foreground mt-1">
+          <div className="text-muted-foreground mt-1 flex justify-between text-xs">
             <span>1개</span>
             <span>{config.topN}개</span>
             <span>10개</span>
           </div>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <div>
-            <label className="block text-sm font-medium text-foreground mb-2">
+            <label className="text-foreground mb-2 block text-sm font-medium">
               진입 거래금액 (USD)
             </label>
             <input
@@ -79,11 +80,11 @@ export default function ConfigPanel({
                   copyAmountUsd: parseFloat(e.target.value),
                 })
               }
-              className="bg-muted/60 border border-border/80 rounded-xl px-4 py-3 w-full text-foreground placeholder-muted-500 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all text-sm font-mono"
+              className="bg-muted/60 border-border/80 text-foreground placeholder-muted-500 w-full rounded-xl border px-4 py-3 font-mono text-sm transition-all focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 focus:outline-none"
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-foreground mb-2">
+            <label className="text-foreground mb-2 block text-sm font-medium">
               최소 APR 기준 (%)
             </label>
             <input
@@ -96,13 +97,13 @@ export default function ConfigPanel({
                   minAprPercent: parseFloat(e.target.value),
                 })
               }
-              className="bg-muted/60 border border-border/80 rounded-xl px-4 py-3 w-full text-foreground placeholder-muted-500 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all text-sm font-mono"
+              className="bg-muted/60 border-border/80 text-foreground placeholder-muted-500 w-full rounded-xl border px-4 py-3 font-mono text-sm transition-all focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 focus:outline-none"
             />
           </div>
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-foreground mb-2">
+          <label className="text-foreground mb-2 block text-sm font-medium">
             스캔 주기 (간격 - ms)
           </label>
           <input
@@ -115,26 +116,26 @@ export default function ConfigPanel({
                 intervalMs: parseInt(e.target.value),
               })
             }
-            className="bg-muted/60 border border-border/80 rounded-xl px-4 py-3 w-full text-foreground placeholder-muted-500 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all text-sm font-mono"
+            className="bg-muted/60 border-border/80 text-foreground placeholder-muted-500 w-full rounded-xl border px-4 py-3 font-mono text-sm transition-all focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 focus:outline-none"
           />
-          <span className="text-muted-foreground text-xs mt-1 block">
+          <span className="text-muted-foreground mt-1 block text-xs">
             {(config.intervalMs / 60000).toFixed(1)} 분 마다 전체 봇 검증 진행
           </span>
         </div>
 
         {/* 🌊 검증 대상 유동성 풀 관리 */}
-        <div className="pt-4 border-t border-border/50">
-          <label className="block text-sm font-medium text-foreground mb-2">
+        <div className="border-border/50 border-t pt-4">
+          <label className="text-foreground mb-2 block text-sm font-medium">
             트래킹 유동성 풀 (Pools) 설정
           </label>
-          <div className="flex gap-2 mb-3 flex-wrap">
+          <div className="mb-3 flex flex-wrap gap-2">
             {Array.isArray(config.pools) && config.pools.length > 0 ? (
               config.pools.map((poolId) => {
                 const pool = pools?.find((p) => p.id === poolId);
                 return (
                   <div
                     key={poolId}
-                    className="bg-indigo-500/10 border border-indigo-500/30 text-indigo-400 rounded-full px-3 py-1.5 text-xs flex items-center gap-1.5"
+                    className="flex items-center gap-1.5 rounded-full border border-indigo-500/30 bg-indigo-500/10 px-3 py-1.5 text-xs text-indigo-400"
                   >
                     <span>{pool ? pool.pair : poolId.slice(0, 8)}</span>
                     <button
@@ -145,7 +146,7 @@ export default function ConfigPanel({
                           pools: config.pools.filter((p) => p !== poolId),
                         })
                       }
-                      className="text-indigo-400 hover:text-indigo-300 transition-colors cursor-pointer"
+                      className="cursor-pointer text-indigo-400 transition-colors hover:text-indigo-300"
                     >
                       <X size={12} />
                     </button>
@@ -153,7 +154,7 @@ export default function ConfigPanel({
                 );
               })
             ) : (
-              <span className="text-xs text-muted-foreground">
+              <span className="text-muted-foreground text-xs">
                 선택된 풀이 없습니다. 전체 풀을 대상으로 트래킹합니다.
               </span>
             )}
@@ -161,7 +162,7 @@ export default function ConfigPanel({
           <Link href="/config/pools">
             <button
               type="button"
-              className="mt-1 bg-indigo-500/10 hover:bg-indigo-500/20 border border-indigo-500/30 hover:border-indigo-500/50 rounded-xl px-4 py-3 w-full text-indigo-400 hover:text-indigo-300 transition-all text-sm font-bold flex items-center justify-center gap-2 cursor-pointer shadow-lg shadow-indigo-500/5"
+              className="mt-1 flex w-full cursor-pointer items-center justify-center gap-2 rounded-xl border border-indigo-500/30 bg-indigo-500/10 px-4 py-3 text-sm font-bold text-indigo-400 shadow-lg shadow-indigo-500/5 transition-all hover:border-indigo-500/50 hover:bg-indigo-500/20 hover:text-indigo-300"
             >
               <Layers size={16} /> 설정 대상 풀 목록 조회 및 선택하기
             </button>
@@ -169,11 +170,11 @@ export default function ConfigPanel({
         </div>
 
         {/* 🪙 자동 리충전 토큰 관리 */}
-        <div className="pt-4 border-t border-border/50">
-          <label className="block text-sm font-medium text-foreground mb-2">
+        <div className="border-border/50 border-t pt-4">
+          <label className="text-foreground mb-2 block text-sm font-medium">
             자동 리충전 대상 토큰 (Auto Recharge) 설정
           </label>
-          <div className="flex gap-2 mb-3 flex-wrap">
+          <div className="mb-3 flex flex-wrap gap-2">
             {Array.isArray(config.autoRechargeTokens) &&
             config.autoRechargeTokens.length > 0 ? (
               config.autoRechargeTokens.map((mint) => {
@@ -181,7 +182,7 @@ export default function ConfigPanel({
                 return (
                   <div
                     key={mint}
-                    className="bg-green-500/10 border border-green-500/30 text-green-400 rounded-full px-3 py-1.5 text-xs flex items-center gap-1.5"
+                    className="flex items-center gap-1.5 rounded-full border border-green-500/30 bg-green-500/10 px-3 py-1.5 text-xs text-green-400"
                   >
                     <span>{token ? token.symbol : mint.slice(0, 8)}</span>
                     <button
@@ -194,7 +195,7 @@ export default function ConfigPanel({
                           ),
                         })
                       }
-                      className="text-green-400 hover:text-green-300 transition-colors cursor-pointer"
+                      className="cursor-pointer text-green-400 transition-colors hover:text-green-300"
                     >
                       <X size={12} />
                     </button>
@@ -202,7 +203,7 @@ export default function ConfigPanel({
                 );
               })
             ) : (
-              <span className="text-xs text-muted-foreground">
+              <span className="text-muted-foreground text-xs">
                 자동 리충전하도록 목록에 추가할 토큰이 없습니다.
               </span>
             )}
@@ -210,21 +211,21 @@ export default function ConfigPanel({
           <Link href="/config/tokens">
             <button
               type="button"
-              className="mt-1 bg-emerald-500/10 hover:bg-emerald-500/20 border border-emerald-500/30 hover:border-emerald-500/50 rounded-xl px-4 py-3 w-full text-emerald-400 hover:text-emerald-300 transition-all text-sm font-bold flex items-center justify-center gap-2 cursor-pointer shadow-lg shadow-emerald-500/5"
+              className="mt-1 flex w-full cursor-pointer items-center justify-center gap-2 rounded-xl border border-emerald-500/30 bg-emerald-500/10 px-4 py-3 text-sm font-bold text-emerald-400 shadow-lg shadow-emerald-500/5 transition-all hover:border-emerald-500/50 hover:bg-emerald-500/20 hover:text-emerald-300"
             >
               <Layers size={16} /> 설정 대상 토큰 목록 조회 및 선택하기
             </button>
           </Link>
         </div>
 
-        <div className="flex items-center gap-2 pt-2 border-t border-border/80 mt-4">
+        <div className="border-border/80 mt-4 flex items-center gap-2 border-t pt-2">
           <input
             type="checkbox"
             checked={config.dryRun}
             onChange={(e) => setConfig({ ...config, dryRun: e.target.checked })}
-            className="rounded h-4 w-4 bg-muted border-border text-indigo-600 focus:ring-indigo-500"
+            className="bg-muted border-border h-4 w-4 rounded text-indigo-600 focus:ring-indigo-500"
           />
-          <label className="text-sm font-medium text-foreground">
+          <label className="text-foreground text-sm font-medium">
             Dry Run 봇 구동 (실제 지갑 트랜잭션 수수료만 청구, 가상 포지션 수립)
           </label>
         </div>
@@ -240,6 +241,6 @@ export default function ConfigPanel({
           {saving ? "저장 중..." : "변경 사항 저장 및 가동"}
         </Button>
       </div>
-      </Card>
+    </Card>
   );
 }

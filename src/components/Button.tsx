@@ -36,7 +36,7 @@ export default function Button({
       disabled={disabled || isLoading}
       {...props}
     >
-      {isLoading ? <Loader2 className="animate-spin h-5 w-5" /> : icon}
+      {isLoading ? <Loader2 className="h-5 w-5 animate-spin" /> : icon}
       {children}
     </button>
   );

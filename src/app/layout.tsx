@@ -23,7 +23,7 @@ export default function RootLayout({
   return (
     <html lang="en" className="h-full">
       <body
-        className={`${jakartaSans.variable} h-full antialiased font-sans bg-surface text-foreground flex flex-col`}
+        className={`${jakartaSans.variable} bg-surface text-foreground flex h-full flex-col font-sans antialiased`}
       >
         <ReactQueryProvider>
           <SolanaWalletProvider>{children}</SolanaWalletProvider>

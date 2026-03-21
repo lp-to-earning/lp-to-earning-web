@@ -23,7 +23,7 @@ export default function SortButtonGroup({
   activeColorClass = "bg-indigo-600",
 }: SortButtonGroupProps) {
   return (
-    <div className="flex gap-2 flex-wrap">
+    <div className="flex flex-wrap gap-2">
       {items.map((item) => {
         const isActive = currentSort === item.value;
         const Icon = item.icon;
@@ -33,22 +33,22 @@ export default function SortButtonGroup({
             key={item.value}
             type="button"
             onClick={() => onSortClick(item.value)}
-            className={`px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center gap-1 ${
+            className={`flex cursor-pointer items-center gap-1 rounded-xl px-4 py-2 text-xs font-bold transition-all ${
               isActive
                 ? `${activeColorClass} text-white shadow-lg shadow-indigo-500/30`
-                : "bg-muted/30 border border-border/30 text-muted-foreground hover:bg-muted/50"
+                : "bg-muted/30 border-border/30 text-muted-foreground hover:bg-muted/50 border"
             }`}
           >
             {Icon && <Icon size={14} />}
             <span>{item.label}</span>
-            
-            {isActive && item.value !== "default" && (
-              currentOrder === "desc" ? (
+
+            {isActive &&
+              item.value !== "default" &&
+              (currentOrder === "desc" ? (
                 <ArrowDownNarrowWide size={14} />
               ) : (
                 <ArrowUpNarrowWide size={14} />
-              )
-            )}
+              ))}
           </button>
         );
       })}
