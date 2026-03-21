@@ -4,7 +4,15 @@ import { useConfig, useUpdateConfig } from "@/hooks/useConfig";
 import { useTokens } from "@/hooks/useByrealData";
 import { useState, useMemo, useEffect } from "react";
 import { motion } from "framer-motion";
-import { ArrowLeft, Search, CheckCircle2, Loader, TrendingUp, DollarSign, Percent } from "lucide-react";
+import {
+  ArrowLeft,
+  Search,
+  CheckCircle2,
+  Loader,
+  TrendingUp,
+  DollarSign,
+  Percent,
+} from "lucide-react";
 import Link from "next/link";
 import Toast from "@/components/Toast";
 import { useSearchParams, usePathname, useRouter } from "next/navigation";
@@ -73,25 +81,32 @@ export default function TokenSelectionPage() {
   }, [serverConfig, hasInitialized]);
 
   const filteredTokens = useMemo(() => {
-    let list = tokens?.filter(
-      (t) =>
-        t.symbol.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        t.name.toLowerCase().includes(searchQuery.toLowerCase()),
-    ) || [];
+    let list =
+      tokens?.filter(
+        (t) =>
+          t.symbol.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          t.name.toLowerCase().includes(searchQuery.toLowerCase()),
+      ) || [];
 
     const isDesc = currentOrder === "desc";
 
     if (currentSort === "price") {
       list = [...list].sort((a, b) =>
-        isDesc ? (b.price_usd || 0) - (a.price_usd || 0) : (a.price_usd || 0) - (b.price_usd || 0),
+        isDesc
+          ? (b.price_usd || 0) - (a.price_usd || 0)
+          : (a.price_usd || 0) - (b.price_usd || 0),
       );
     } else if (currentSort === "volume") {
       list = [...list].sort((a, b) =>
-        isDesc ? (b.volume_24h_usd || 0) - (a.volume_24h_usd || 0) : (a.volume_24h_usd || 0) - (b.volume_24h_usd || 0),
+        isDesc
+          ? (b.volume_24h_usd || 0) - (a.volume_24h_usd || 0)
+          : (a.volume_24h_usd || 0) - (b.volume_24h_usd || 0),
       );
     } else if (currentSort === "change") {
       list = [...list].sort((a, b) =>
-        isDesc ? (b.price_change_24h || 0) - (a.price_change_24h || 0) : (a.price_change_24h || 0) - (b.price_change_24h || 0),
+        isDesc
+          ? (b.price_change_24h || 0) - (a.price_change_24h || 0)
+          : (a.price_change_24h || 0) - (b.price_change_24h || 0),
       );
     }
 
@@ -202,7 +217,7 @@ export default function TokenSelectionPage() {
           ) : (
             <motion.div
               layout
-              className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5"
+              className="grid p-2 grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5"
             >
               {filteredTokens?.map((token) => {
                 const isSelected = selectedTokens.includes(token.mint);
