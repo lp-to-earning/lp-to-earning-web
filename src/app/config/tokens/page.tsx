@@ -4,15 +4,56 @@ import { useConfig, useUpdateConfig } from "@/hooks/useConfig";
 import { useTokens } from "@/hooks/useByrealData";
 import { useState, useMemo, useEffect } from "react";
 import { motion } from "framer-motion";
-import { ArrowLeft, Search, CheckCircle2, Loader } from "lucide-react";
+import { ArrowLeft, Search, CheckCircle2, Loader, TrendingUp, DollarSign, Percent } from "lucide-react";
 import Link from "next/link";
 import Toast from "@/components/Toast";
+import { useSearchParams, usePathname, useRouter } from "next/navigation";
+import Image from "next/image";
+import SortButtonGroup from "@/components/SortButtonGroup";
 
 export default function TokenSelectionPage() {
-  const [searchQuery, setSearchQuery] = useState("");
-  const [selectedTokens, setSelectedTokens] = useState<string[]>([]);
+  const searchParams = useSearchParams();
+  const pathname = usePathname();
+  const { replace } = useRouter();
 
+  const searchQuery = searchParams.get("q") || "";
+  const currentSort = searchParams.get("sort") || "default";
+  const currentOrder = searchParams.get("order") || "desc";
+
+  const [selectedTokens, setSelectedTokens] = useState<string[]>([]);
   const [showSavedToast, setShowSavedToast] = useState(false);
+
+  const handleSortClick = (sortValue: string) => {
+    const params = new URLSearchParams(searchParams.toString());
+    if (sortValue === "default") {
+      params.delete("sort");
+      params.delete("order");
+    } else if (currentSort === sortValue) {
+      const nextOrder = currentOrder === "desc" ? "asc" : "desc";
+      params.set("order", nextOrder);
+    } else {
+      params.set("sort", sortValue);
+      params.set("order", "desc");
+    }
+    replace(`${pathname}?${params.toString()}`);
+  };
+
+  const updateUrl = (key: string, value: string) => {
+    const params = new URLSearchParams(searchParams.toString());
+    if (value === "default" || !value) {
+      params.delete(key);
+    } else {
+      params.set(key, value);
+    }
+    replace(`${pathname}?${params.toString()}`);
+  };
+
+  const sortItems = [
+    { value: "default", label: "기본 정렬" },
+    { value: "price", label: "가격", icon: DollarSign },
+    { value: "volume", label: "24h 거래량", icon: TrendingUp },
+    { value: "change", label: "변동률", icon: Percent },
+  ];
 
   // 데이터 훅 조회
   const { data: tokens, isLoading: isTokensLoading } = useTokens();
@@ -32,12 +73,30 @@ export default function TokenSelectionPage() {
   }, [serverConfig, hasInitialized]);
 
   const filteredTokens = useMemo(() => {
-    return tokens?.filter(
+    let list = tokens?.filter(
       (t) =>
         t.symbol.toLowerCase().includes(searchQuery.toLowerCase()) ||
         t.name.toLowerCase().includes(searchQuery.toLowerCase()),
-    );
-  }, [tokens, searchQuery]);
+    ) || [];
+
+    const isDesc = currentOrder === "desc";
+
+    if (currentSort === "price") {
+      list = [...list].sort((a, b) =>
+        isDesc ? (b.price_usd || 0) - (a.price_usd || 0) : (a.price_usd || 0) - (b.price_usd || 0),
+      );
+    } else if (currentSort === "volume") {
+      list = [...list].sort((a, b) =>
+        isDesc ? (b.volume_24h_usd || 0) - (a.volume_24h_usd || 0) : (a.volume_24h_usd || 0) - (b.volume_24h_usd || 0),
+      );
+    } else if (currentSort === "change") {
+      list = [...list].sort((a, b) =>
+        isDesc ? (b.price_change_24h || 0) - (a.price_change_24h || 0) : (a.price_change_24h || 0) - (b.price_change_24h || 0),
+      );
+    }
+
+    return list;
+  }, [tokens, searchQuery, currentSort, currentOrder]);
 
   const generateSparkline = (id: string) => {
     const seed = id.charCodeAt(0) + (id.charCodeAt(1) || 0);
@@ -106,7 +165,16 @@ export default function TokenSelectionPage() {
             </button>
           </div>
 
-          <div className="flex justify-end">
+          {/* 🕵️ 검색 바 및 정렬 */}
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+            <SortButtonGroup
+              items={sortItems}
+              currentSort={currentSort}
+              currentOrder={currentOrder}
+              onSortClick={handleSortClick}
+              activeColorClass="bg-emerald-600"
+            />
+
             <div className="relative w-full sm:max-w-sm">
               <Search
                 size={16}
@@ -116,7 +184,7 @@ export default function TokenSelectionPage() {
                 type="text"
                 placeholder="토큰 검색 (예: USDC, BONK)"
                 value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
+                onChange={(e) => updateUrl("q", e.target.value)}
                 className="bg-muted/30 border border-border/30 rounded-2xl pl-10 pr-4 py-2.5 w-full text-sm outline-none focus:border-emerald-500/50 transition-all"
               />
             </div>
@@ -157,10 +225,13 @@ export default function TokenSelectionPage() {
                       <div className="flex justify-between items-start mb-4">
                         <div className="flex items-center gap-3">
                           {token.logo_uri ? (
-                            <img
+                            <Image
                               src={token.logo_uri}
                               className="w-8 h-8 rounded-full border border-border"
                               alt=""
+                              width={32}
+                              height={32}
+                              unoptimized={true}
                             />
                           ) : (
                             <div className="w-8 h-8 rounded-full bg-slate-700 flex items-center justify-center font-bold text-xs">

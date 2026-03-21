@@ -3,6 +3,7 @@
 import { useConfig, useUpdateConfig } from "@/hooks/useConfig";
 import { usePools } from "@/hooks/useByrealData";
 import { useState, useMemo, useEffect } from "react";
+import { useSearchParams, usePathname, useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import {
   ArrowLeft,
@@ -16,12 +17,50 @@ import {
 import Link from "next/link";
 import Toast from "@/components/Toast";
 import Image from "next/image";
+import SortButtonGroup from "@/components/SortButtonGroup";
 
 export default function PoolSelectionPage() {
-  const [searchQuery, setSearchQuery] = useState("");
-  const [selectedPools, setSelectedPools] = useState<string[]>([]);
+  const searchParams = useSearchParams();
+  const pathname = usePathname();
+  const { replace } = useRouter();
 
+  const searchQuery = searchParams.get("q") || "";
+  const currentSort = searchParams.get("sort") || "default";
+  const currentOrder = searchParams.get("order") || "desc";
+
+  const [selectedPools, setSelectedPools] = useState<string[]>([]);
   const [showSavedToast, setShowSavedToast] = useState(false);
+
+  const updateUrl = (key: string, value: string) => {
+    const params = new URLSearchParams(searchParams.toString());
+    if (value === "default" || !value) {
+      params.delete(key);
+    } else {
+      params.set(key, value);
+    }
+    replace(`${pathname}?${params.toString()}`);
+  };
+
+  const handleSortClick = (sortValue: string) => {
+    const params = new URLSearchParams(searchParams.toString());
+    if (sortValue === "default") {
+      params.delete("sort");
+      params.delete("order");
+    } else if (currentSort === sortValue) {
+      const nextOrder = currentOrder === "desc" ? "asc" : "desc";
+      params.set("order", nextOrder);
+    } else {
+      params.set("sort", sortValue);
+      params.set("order", "desc");
+    }
+    replace(`${pathname}?${params.toString()}`);
+  };
+
+  const sortItems = [
+    { value: "default", label: "기본 정렬" },
+    { value: "apr", label: "APR", icon: TrendingUp },
+    { value: "tvl", label: "TVL", icon: Waves },
+  ];
 
   // 데이터 훅 조회
   const { data: pools, isLoading: isPoolsLoading } = usePools();
@@ -40,12 +79,25 @@ export default function PoolSelectionPage() {
     }
   }, [serverConfig, hasInitialized]);
 
-  // 검색 데이터 필터링
+  // 검색 데이터 필터링 및 정렬
   const filteredPools = useMemo(() => {
-    return pools?.filter((pool) =>
-      pool.pair.toLowerCase().includes(searchQuery.toLowerCase()),
-    );
-  }, [pools, searchQuery]);
+    let list =
+      pools?.filter((pool) =>
+        pool.pair.toLowerCase().includes(searchQuery.toLowerCase()),
+      ) || [];
+
+    const isDesc = currentOrder === "desc";
+
+    if (currentSort === "apr") {
+      list = [...list].sort((a, b) => (isDesc ? b.apr - a.apr : a.apr - b.apr));
+    } else if (currentSort === "tvl") {
+      list = [...list].sort((a, b) =>
+        isDesc ? b.tvl_usd - a.tvl_usd : a.tvl_usd - b.tvl_usd,
+      );
+    }
+
+    return list;
+  }, [pools, searchQuery, currentSort, currentOrder]);
 
   // 스파클라인 시뮬레이션 랜덤 데이터 생성기용 패스 드로잉
   const generateSparkline = (id: string) => {
@@ -183,8 +235,16 @@ export default function PoolSelectionPage() {
             </motion.div>
           </div>
 
-          {/* 🕵️ 검색 바 */}
-          <div className="flex justify-end">
+          {/* 🕵️ 검색 바 및 정렬 */}
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+            <SortButtonGroup
+              items={sortItems}
+              currentSort={currentSort}
+              currentOrder={currentOrder}
+              onSortClick={handleSortClick}
+              activeColorClass="bg-indigo-600"
+            />
+
             <div className="relative w-full sm:max-w-sm">
               <Search
                 size={16}
@@ -194,7 +254,7 @@ export default function PoolSelectionPage() {
                 type="text"
                 placeholder="풀 이름 검색 (예: SOL/USDC)"
                 value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
+                onChange={(e) => updateUrl("q", e.target.value)}
                 className="bg-muted/30 border border-border/30 rounded-2xl pl-10 pr-4 py-2.5 w-full text-sm outline-none focus:border-indigo-500/50 transition-all"
               />
             </div>
