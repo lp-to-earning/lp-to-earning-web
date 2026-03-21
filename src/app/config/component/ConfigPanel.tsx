@@ -48,21 +48,15 @@ export default function ConfigPanel({
             상위 포지션 트래킹 수 (Top N)
           </label>
           <input
-            type="range"
+            type="number"
             min="1"
-            max="10"
             step="1"
             value={config.topN}
             onChange={(e) =>
               setConfig({ ...config, topN: parseInt(e.target.value) })
             }
-            className="bg-muted h-2 w-full cursor-pointer appearance-none rounded-lg accent-indigo-500"
+            className="bg-muted/60 border-border/80 text-foreground placeholder-muted-500 w-full rounded-xl border px-4 py-3 font-mono text-sm transition-all focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 focus:outline-none"
           />
-          <div className="text-muted-foreground mt-1 flex justify-between text-xs">
-            <span>1개</span>
-            <span>{config.topN}개</span>
-            <span>10개</span>
-          </div>
         </div>
 
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
@@ -104,22 +98,22 @@ export default function ConfigPanel({
 
         <div>
           <label className="text-foreground mb-2 block text-sm font-medium">
-            스캔 주기 (간격 - ms)
+            스캔 주기 (간격 - 분)
           </label>
           <input
             type="number"
-            step="60000"
-            value={config.intervalMs}
+            step="1"
+            value={config.intervalMs / 60000}
             onChange={(e) =>
               setConfig({
                 ...config,
-                intervalMs: parseInt(e.target.value),
+                intervalMs: parseInt(e.target.value) * 60000,
               })
             }
             className="bg-muted/60 border-border/80 text-foreground placeholder-muted-500 w-full rounded-xl border px-4 py-3 font-mono text-sm transition-all focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 focus:outline-none"
           />
           <span className="text-muted-foreground mt-1 block text-xs">
-            {(config.intervalMs / 60000).toFixed(1)} 분 마다 전체 봇 검증 진행
+            {config.intervalMs / 60000} 분 마다 전체 봇 검증 진행
           </span>
         </div>
 
