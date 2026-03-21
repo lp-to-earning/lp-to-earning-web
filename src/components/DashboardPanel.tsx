@@ -1,5 +1,4 @@
-import { Play, Pause, Activity, Zap, DollarSign } from "lucide-react";
-import Link from "next/link";
+import { usePools, useTokens } from "@/hooks/useByrealData";
 
 interface ConfigData {
   topN: number;
@@ -7,9 +6,15 @@ interface ConfigData {
   minAprPercent: number;
   intervalMs: number;
   dryRun: boolean;
+  pools?: string[];
+  autoRechargeTokens?: string[];
 }
 
+import { Play, Pause, Activity, Zap, DollarSign, Layers } from "lucide-react";
+import Link from "next/link";
 export default function DashboardPanel({ config }: { config: ConfigData }) {
+  const { data: pools } = usePools();
+  const { data: tokens } = useTokens();
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
       {/* 봇 가동 현황 */}
@@ -92,6 +97,60 @@ export default function DashboardPanel({ config }: { config: ConfigData }) {
               <span className="text-white font-bold">
                 {config.minAprPercent}%
               </span>
+            </div>
+          </div>
+
+          {/* 🌊 카피할 풀 리스트 추가 */}
+          <div className="bg-muted/40 p-4 rounded-2xl flex flex-col gap-2 border border-border/50">
+            <div className="flex items-center gap-2 text-muted-foreground">
+              <Layers size={14} />
+              <span className="text-sm">트래킹 대상 풀</span>
+            </div>
+            <div className="flex flex-wrap gap-1.5 mt-1">
+              {config.pools && config.pools.length > 0 ? (
+                config.pools.map((poolId) => {
+                  const pool = pools?.find((p) => p.id === poolId);
+                  return (
+                    <span
+                      key={poolId}
+                      className="bg-indigo-500/10 border border-indigo-500/30 text-indigo-300 px-2 py-1 rounded-lg text-xs font-mono"
+                    >
+                      {pool ? pool.pair : poolId.slice(0, 8)}
+                    </span>
+                  );
+                })
+              ) : (
+                <span className="text-xs text-muted-foreground/60">
+                  전체 풀 대상 트래킹 중
+                </span>
+              )}
+            </div>
+          </div>
+
+          {/* 🪙 자동 리충전 리스트 추가 */}
+          <div className="bg-muted/40 p-4 rounded-2xl flex flex-col gap-2 border border-border/50">
+            <div className="flex items-center gap-2 text-muted-foreground">
+              <DollarSign size={14} />
+              <span className="text-sm">자동 리충전 대상 토큰</span>
+            </div>
+            <div className="flex flex-wrap gap-1.5 mt-1">
+              {config.autoRechargeTokens && config.autoRechargeTokens.length > 0 ? (
+                config.autoRechargeTokens.map((mint) => {
+                  const token = tokens?.find((t) => t.mint === mint);
+                  return (
+                    <span
+                      key={mint}
+                      className="bg-emerald-500/10 border border-emerald-500/30 text-emerald-300 px-2 py-1 rounded-lg text-xs font-mono"
+                    >
+                      {token ? token.symbol : mint.slice(0, 8)}
+                    </span>
+                  );
+                })
+              ) : (
+                <span className="text-xs text-muted-foreground/60">
+                  등록된 토큰 없음
+                </span>
+              )}
             </div>
           </div>
         </div>
