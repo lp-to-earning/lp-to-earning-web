@@ -3,6 +3,7 @@ import Button from "../../../components/Button";
 import { useRouter } from "next/navigation";
 import { usePools, useTokens } from "@/hooks/useByrealData";
 import Link from "next/link";
+import { Card } from "../../../components/Card";
 
 interface ConfigPanelProps {
   config: Config;
@@ -22,19 +23,23 @@ export default function ConfigPanel({
   const { data: tokens } = useTokens();
 
   return (
-    <div className="glass ghost-border p-8 rounded-3xl">
-      <div className="flex justify-between items-center mb-6">
-        <div className="flex items-center gap-2">
+    <Card
+      title={
+        <>
           <Settings className="text-muted-foreground h-5 w-5" />
-          <h2 className="text-lg font-bold">전략적 봇 상세 설정</h2>
-        </div>
+          <span className="text-lg font-bold normal-case">전략적 봇 상세 설정</span>
+        </>
+      }
+      rightElement={
         <button
           onClick={() => router.push("/")}
           className="flex items-center gap-1.5 text-sm font-medium text-muted-foreground hover:text-foreground transition-all duration-200 cursor-pointer"
         >
           <ArrowLeft className="h-4 w-4" /> 뒤로가기
         </button>
-      </div>
+      }
+      className="p-8"
+    >
 
       <div className="space-y-6">
         <div>
@@ -235,6 +240,6 @@ export default function ConfigPanel({
           {saving ? "저장 중..." : "변경 사항 저장 및 가동"}
         </Button>
       </div>
-    </div>
+      </Card>
   );
 }
