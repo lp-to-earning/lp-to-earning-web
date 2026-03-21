@@ -10,7 +10,7 @@ interface ConfigData {
   autoRechargeTokens?: string[];
 }
 
-import { Play, Pause, Activity, Zap, DollarSign, Layers } from "lucide-react";
+import { Play, Pause, Activity, Zap, DollarSign, Layers, ChevronRight } from "lucide-react";
 import Link from "next/link";
 export default function DashboardPanel({ config }: { config: ConfigData }) {
   const { data: pools } = usePools();
@@ -62,9 +62,9 @@ export default function DashboardPanel({ config }: { config: ConfigData }) {
           </h3>
           <Link
             href="/config"
-            className="px-6 py-2.5 rounded-xl text-sm font-bold transition-all text-muted-foreground hover:text-foreground hover:bg-muted/50"
+            className="flex items-center gap-1 text-sm font-medium text-muted-foreground hover:text-foreground transition-all duration-200 cursor-pointer"
           >
-            상세 설정
+            상세 설정 <ChevronRight className="h-4 w-4" />
           </Link>
         </div>
         <div className="space-y-4">
