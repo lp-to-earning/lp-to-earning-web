@@ -1,17 +1,12 @@
-import { Settings, Save } from "lucide-react";
+import { Settings, Save, ArrowLeft, X, Layers } from "lucide-react";
 import Button from "../../../components/Button";
-
-interface ConfigData {
-  topN: number;
-  copyAmountUsd: number;
-  minAprPercent: number;
-  intervalMs: number;
-  dryRun: boolean;
-}
+import { useRouter } from "next/navigation";
+import { usePools, useTokens } from "@/hooks/useByrealData";
+import Link from "next/link";
 
 interface ConfigPanelProps {
-  config: ConfigData;
-  setConfig: (config: ConfigData) => void;
+  config: Config;
+  setConfig: (config: Config) => void;
   saveConfig: () => void;
   saving: boolean;
 }
@@ -22,6 +17,10 @@ export default function ConfigPanel({
   saveConfig,
   saving,
 }: ConfigPanelProps) {
+  const router = useRouter();
+  const { data: pools } = usePools();
+  const { data: tokens } = useTokens();
+
   return (
     <div className="glass ghost-border p-8 rounded-3xl">
       <div className="flex justify-between items-center mb-6">
@@ -29,6 +28,12 @@ export default function ConfigPanel({
           <Settings className="text-muted-foreground h-5 w-5" />
           <h2 className="text-lg font-bold">전략적 봇 상세 설정</h2>
         </div>
+        <button
+          onClick={() => router.push("/")}
+          className="flex items-center gap-1.5 text-sm font-medium text-muted-foreground hover:text-foreground transition-all duration-200 cursor-pointer"
+        >
+          <ArrowLeft className="h-4 w-4" /> 뒤로가기
+        </button>
       </div>
 
       <div className="space-y-6">
@@ -110,6 +115,101 @@ export default function ConfigPanel({
           <span className="text-muted-foreground text-xs mt-1 block">
             {(config.intervalMs / 60000).toFixed(1)} 분 마다 전체 봇 검증 진행
           </span>
+        </div>
+
+        {/* 🌊 검증 대상 유동성 풀 관리 */}
+        <div className="pt-4 border-t border-border/50">
+          <label className="block text-sm font-medium text-foreground mb-2">
+            트래킹 유동성 풀 (Pools) 설정
+          </label>
+          <div className="flex gap-2 mb-3 flex-wrap">
+            {Array.isArray(config.pools) && config.pools.length > 0 ? (
+              config.pools.map((poolId) => {
+                const pool = pools?.find((p) => p.id === poolId);
+                return (
+                  <div
+                    key={poolId}
+                    className="bg-indigo-500/10 border border-indigo-500/30 text-indigo-400 rounded-full px-3 py-1.5 text-xs flex items-center gap-1.5"
+                  >
+                    <span>{pool ? pool.pair : poolId.slice(0, 8)}</span>
+                    <button
+                      type="button"
+                      onClick={() =>
+                        setConfig({
+                          ...config,
+                          pools: config.pools.filter((p) => p !== poolId),
+                        })
+                      }
+                      className="text-indigo-400 hover:text-indigo-300 transition-colors cursor-pointer"
+                    >
+                      <X size={12} />
+                    </button>
+                  </div>
+                );
+              })
+            ) : (
+              <span className="text-xs text-muted-foreground">
+                선택된 풀이 없습니다. 전체 풀을 대상으로 트래킹합니다.
+              </span>
+            )}
+          </div>
+          <Link href="/config/pools">
+            <button
+              type="button"
+              className="mt-1 bg-indigo-500/10 hover:bg-indigo-500/20 border border-indigo-500/30 hover:border-indigo-500/50 rounded-xl px-4 py-3 w-full text-indigo-400 hover:text-indigo-300 transition-all text-sm font-bold flex items-center justify-center gap-2 cursor-pointer shadow-lg shadow-indigo-500/5"
+            >
+              <Layers size={16} /> 설정 대상 풀 목록 조회 및 선택하기
+            </button>
+          </Link>
+        </div>
+
+        {/* 🪙 자동 리충전 토큰 관리 */}
+        <div className="pt-4 border-t border-border/50">
+          <label className="block text-sm font-medium text-foreground mb-2">
+            자동 리충전 대상 토큰 (Auto Recharge) 설정
+          </label>
+          <div className="flex gap-2 mb-3 flex-wrap">
+            {Array.isArray(config.autoRechargeTokens) &&
+            config.autoRechargeTokens.length > 0 ? (
+              config.autoRechargeTokens.map((mint) => {
+                const token = tokens?.find((t) => t.mint === mint);
+                return (
+                  <div
+                    key={mint}
+                    className="bg-green-500/10 border border-green-500/30 text-green-400 rounded-full px-3 py-1.5 text-xs flex items-center gap-1.5"
+                  >
+                    <span>{token ? token.symbol : mint.slice(0, 8)}</span>
+                    <button
+                      type="button"
+                      onClick={() =>
+                        setConfig({
+                          ...config,
+                          autoRechargeTokens: config.autoRechargeTokens.filter(
+                            (t) => t !== mint,
+                          ),
+                        })
+                      }
+                      className="text-green-400 hover:text-green-300 transition-colors cursor-pointer"
+                    >
+                      <X size={12} />
+                    </button>
+                  </div>
+                );
+              })
+            ) : (
+              <span className="text-xs text-muted-foreground">
+                자동 리충전하도록 목록에 추가할 토큰이 없습니다.
+              </span>
+            )}
+          </div>
+          <Link href="/config/tokens">
+            <button
+              type="button"
+              className="mt-1 bg-emerald-500/10 hover:bg-emerald-500/20 border border-emerald-500/30 hover:border-emerald-500/50 rounded-xl px-4 py-3 w-full text-emerald-400 hover:text-emerald-300 transition-all text-sm font-bold flex items-center justify-center gap-2 cursor-pointer shadow-lg shadow-emerald-500/5"
+            >
+              <Layers size={16} /> 설정 대상 토큰 목록 조회 및 선택하기
+            </button>
+          </Link>
         </div>
 
         <div className="flex items-center gap-2 pt-2 border-t border-border/80 mt-4">

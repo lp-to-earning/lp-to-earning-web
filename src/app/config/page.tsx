@@ -4,30 +4,16 @@ import { useWallet } from "@solana/wallet-adapter-react";
 import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { AlertCircle, CheckCircle2 } from "lucide-react";
-import axios from "axios";
+import { useConfig, useUpdateConfig } from "@/hooks/useConfig";
+import { Config } from "@/api/config/config";
 import Header from "@/components/Header";
 import ConfigPanel from "@/app/config/component/ConfigPanel";
 import Link from "next/link";
 
-const API_HOST = process.env.NEXT_PUBLIC_API_HOST;
-
 export default function ConfigPage() {
   const { connected } = useWallet();
   const [token, setToken] = useState<string | null>(null);
-  const [saving, setSaving] = useState(false);
-  const [config, setConfig] = useState<{
-    topN: number;
-    copyAmountUsd: number;
-    minAprPercent: number;
-    intervalMs: number;
-    dryRun: boolean;
-  }>({
-    topN: 3,
-    copyAmountUsd: 3.0,
-    minAprPercent: 20.0,
-    intervalMs: 1800000,
-    dryRun: true,
-  });
+  const [localConfig, setLocalConfig] = useState<Config | null>(null);
   const [message, setMessage] = useState<{
     type: "success" | "error";
     text: string;
@@ -40,40 +26,44 @@ export default function ConfigPage() {
     }
   }, []);
 
-  const fetchConfig = async (authToken: string) => {
-    try {
-      const { data } = await axios.get(`${API_HOST}/config`, {
-        headers: { Authorization: `Bearer ${authToken}` },
-      });
-      if (data.config) {
-        setConfig(data.config);
-      }
-    } catch (error) {
-      console.error("Failed to fetch config", error);
-    }
+  const { data: serverConfig } = useConfig(token, connected);
+  const updateConfigMutation = useUpdateConfig();
+
+  const config: Config = {
+    topN: 3,
+    copyAmountUsd: 3.0,
+    minAprPercent: 20.0,
+    intervalMs: 1800000,
+    dryRun: true,
+    pools: [],
+    autoRechargeTokens: [],
+    ...(serverConfig || {}),
+    ...(localConfig || {}),
   };
 
-  useEffect(() => {
-    if (token && connected) {
-      fetchConfig(token);
-    }
-  }, [token, connected]);
+  const setConfig = (newConfig: Config) => {
+    setLocalConfig(newConfig);
+  };
 
-  const saveConfig = async () => {
+  const saveConfig = () => {
     if (!token) return;
-    setSaving(true);
     setMessage(null);
 
-    try {
-      await axios.post(`${API_HOST}/config`, config, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      setMessage({ type: "success", text: "설정이 안전하게 저장되었습니다!" });
-    } catch (error) {
-      setMessage({ type: "error", text: "설정 저장에 실패했습니다." });
-    } finally {
-      setSaving(false);
-    }
+    updateConfigMutation.mutate(
+      { token, config },
+      {
+        onSuccess: () => {
+          setLocalConfig(null);
+          setMessage({
+            type: "success",
+            text: "설정이 안전하게 저장되었습니다!",
+          });
+        },
+        onError: () => {
+          setMessage({ type: "error", text: "설정 저장에 실패했습니다." });
+        },
+      },
+    );
   };
 
   const logout = () => {
@@ -140,7 +130,7 @@ export default function ConfigPage() {
               config={config}
               setConfig={setConfig}
               saveConfig={saveConfig}
-              saving={saving}
+              saving={updateConfigMutation.isPending}
             />
           </motion.div>
         </div>

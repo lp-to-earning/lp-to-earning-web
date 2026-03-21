@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Plus_Jakarta_Sans } from "next/font/google";
 import SolanaWalletProvider from "@/components/SolanaWalletProvider";
+import ReactQueryProvider from "@/components/ReactQueryProvider";
 import "./globals.css";
 
 const jakartaSans = Plus_Jakarta_Sans({
@@ -24,7 +25,9 @@ export default function RootLayout({
       <body
         className={`${jakartaSans.variable} h-full antialiased font-sans bg-surface text-foreground flex flex-col`}
       >
-        <SolanaWalletProvider>{children}</SolanaWalletProvider>
+        <ReactQueryProvider>
+          <SolanaWalletProvider>{children}</SolanaWalletProvider>
+        </ReactQueryProvider>
       </body>
     </html>
   );

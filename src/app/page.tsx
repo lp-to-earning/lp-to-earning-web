@@ -171,14 +171,6 @@ export default function Home() {
           </div>
         ) : (
           <div className="space-y-6">
-            <div className="flex justify-between items-center mb-2 bg-muted/50 p-2 rounded-2xl border border-border/80 backdrop-blur-md">
-              <div className="flex gap-4">
-                <div className="px-6 py-2.5 rounded-xl text-sm font-bold transition-all bg-indigo-600 text-white shadow-md shadow-indigo-500/20">
-                  대시보드
-                </div>
-              </div>
-            </div>
-
             <motion.div
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
