@@ -1,12 +1,17 @@
 import { useQuery, useInfiniteQuery } from "@tanstack/react-query";
-import { getPools, getTokens } from "@/api/pools/pools";
-import { getPositions, PositionsResult } from "@/api/positions/positions";
+import { getTokens } from "@/api/pools/pools";
+import { fetchUserPools } from "@/api/remote/pools";
+import {
+  fetchUserPositions,
+  type UserPositionsResult,
+} from "@/api/remote/positions";
 
-export const usePools = () => {
+export const usePools = (token: string | null) => {
   return useQuery<Pool[]>({
-    queryKey: ["pools"],
-    queryFn: getPools,
-    staleTime: 5 * 60 * 1000, // 5분
+    queryKey: ["pools", token],
+    queryFn: fetchUserPools,
+    enabled: !!token,
+    staleTime: 5 * 60 * 1000,
     refetchOnWindowFocus: false,
   });
 };
@@ -22,20 +27,30 @@ export const useTokens = () => {
 
 
 
-export const usePositions = (page: number = 1, pageSize: number = 20) => {
-  return useQuery<PositionsResult>({
-    queryKey: ["positions", page, pageSize],
-    queryFn: () => getPositions(page, pageSize),
-    staleTime: 5 * 60 * 1000, // 5분
+export const usePositions = (
+  token: string | null,
+  page: number = 1,
+  pageSize: number = 20,
+) => {
+  return useQuery<UserPositionsResult>({
+    queryKey: ["positions", token, page, pageSize],
+    queryFn: () => fetchUserPositions(page, pageSize),
+    enabled: !!token,
+    staleTime: 5 * 60 * 1000,
     refetchOnWindowFocus: false,
   });
 };
 
-export const useInfinitePositions = (pageSize: number = 12) => {
-  return useInfiniteQuery<PositionsResult>({
-    queryKey: ["infinitePositions", pageSize],
-    queryFn: ({ pageParam }) => getPositions(pageParam as number, pageSize),
+export const useInfinitePositions = (
+  token: string | null,
+  pageSize: number = 12,
+) => {
+  return useInfiniteQuery<UserPositionsResult>({
+    queryKey: ["infinitePositions", token, pageSize],
+    queryFn: ({ pageParam }) =>
+      fetchUserPositions(pageParam as number, pageSize),
     initialPageParam: 1,
+    enabled: !!token,
     getNextPageParam: (lastPage, allPages) => {
       const currentTotal = allPages.flatMap((p) => p.positions).length;
       if (currentTotal < lastPage.total) {

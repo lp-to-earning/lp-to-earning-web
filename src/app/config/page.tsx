@@ -1,29 +1,28 @@
 "use client";
 
 import { useWallet } from "@solana/wallet-adapter-react";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { AlertCircle, CheckCircle2 } from "lucide-react";
 import { useConfig, useUpdateConfig } from "@/hooks/useConfig";
+import {
+  useSetAuthToken,
+  useStoredAuthToken,
+} from "@/hooks/useStoredAuthToken";
 import Header from "@/components/Header";
 import ConfigPanel from "@/app/config/component/ConfigPanel";
+import { PrivateKeyCard } from "@/components/PrivateKeyCard";
 import Link from "next/link";
 
 export default function ConfigPage() {
   const { connected } = useWallet();
-  const [token, setToken] = useState<string | null>(null);
+  const token = useStoredAuthToken();
+  const setAuthToken = useSetAuthToken();
   const [localConfig, setLocalConfig] = useState<Config | null>(null);
   const [message, setMessage] = useState<{
     type: "success" | "error";
     text: string;
   } | null>(null);
-
-  useEffect(() => {
-    if (typeof window !== "undefined") {
-      const savedToken = localStorage.getItem("auth_token");
-      if (savedToken) setToken(savedToken);
-    }
-  }, []);
 
   const { data: serverConfig } = useConfig(token, connected);
   const updateConfigMutation = useUpdateConfig();
@@ -48,9 +47,7 @@ export default function ConfigPage() {
     if (!token) return;
     setMessage(null);
 
-    updateConfigMutation.mutate(
-      { token, config },
-      {
+    updateConfigMutation.mutate(config, {
         onSuccess: () => {
           setLocalConfig(null);
           setMessage({
@@ -61,13 +58,11 @@ export default function ConfigPage() {
         onError: () => {
           setMessage({ type: "error", text: "설정 저장에 실패했습니다." });
         },
-      },
-    );
+    });
   };
 
   const logout = () => {
-    setToken(null);
-    localStorage.removeItem("auth_token");
+    setAuthToken(null);
   };
 
   if (!connected || !token) {
@@ -125,11 +120,19 @@ export default function ConfigPage() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.2 }}
           >
+            <PrivateKeyCard />
+          </motion.div>
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.2 }}
+          >
             <ConfigPanel
               config={config}
               setConfig={setConfig}
               saveConfig={saveConfig}
               saving={updateConfigMutation.isPending}
+              authToken={token}
             />
           </motion.div>
         </div>

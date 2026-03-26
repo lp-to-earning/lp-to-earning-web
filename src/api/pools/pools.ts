@@ -9,13 +9,6 @@ interface BotPoolsResponse {
   };
 }
 
-interface BotTokensResponse {
-  success: boolean;
-  data: {
-    tokens: Token[];
-  };
-}
-
 export const getPools = async (): Promise<Pool[]> => {
   try {
     const res = await botFetch<BotPoolsResponse>("/api/pools");

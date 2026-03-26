@@ -1,29 +1,35 @@
 "use client";
 
 import { useWallet } from "@solana/wallet-adapter-react";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
+import {
+  useSetAuthToken,
+  useStoredAuthToken,
+} from "@/hooks/useStoredAuthToken";
 import { motion, AnimatePresence } from "framer-motion";
 import { Settings, AlertCircle, CheckCircle2 } from "lucide-react";
-import axios from "axios";
 import bs58 from "bs58";
 import Header from "@/components/Header";
 import Button from "@/components/Button";
 import DashboardPanel from "@/components/DashboardPanel";
-
-const API_HOST = process.env.NEXT_PUBLIC_API_HOST || "";
+import { PrivateKeyCard } from "@/components/PrivateKeyCard";
+import { createPublicApi } from "@/lib/authed-axios";
+import { getConfig } from "@/api/config/config";
 
 export default function Home() {
   const { publicKey, signMessage, connected } = useWallet();
-  const [token, setToken] = useState<string | null>(null);
+  const token = useStoredAuthToken();
+  const setAuthToken = useSetAuthToken();
   const [loading, setLoading] = useState(false);
 
-  // Configuration State
-  const [config, setConfig] = useState<any>({
+  const [config, setConfig] = useState<Config>({
     topN: 3,
     copyAmountUsd: 3.0,
     minAprPercent: 20.0,
     intervalMs: 1800000,
     dryRun: true,
+    pools: [],
+    autoRechargeTokens: [],
   });
 
   const [message, setMessage] = useState<{
@@ -31,14 +37,15 @@ export default function Home() {
     text: string;
   } | null>(null);
 
-  useEffect(() => {
-    if (typeof window !== "undefined") {
-      const savedToken = localStorage.getItem("auth_token");
-      if (savedToken) setToken(savedToken);
+  const fetchConfig = useCallback(async () => {
+    try {
+      const next = await getConfig();
+      setConfig(next);
+    } catch (error) {
+      console.error("Failed to fetch config", error);
     }
   }, []);
 
-  // 1. Auth Flow: Sign Message Login
   const handleLogin = async () => {
     if (!publicKey || !signMessage) return;
     setLoading(true);
@@ -46,42 +53,34 @@ export default function Home() {
 
     try {
       const walletAddress = publicKey.toString();
+      const api = createPublicApi();
 
-      // Step A: Get Nonce
-      const { data: nonceData } = await axios.post(
-        `${API_HOST}/api/auth/nonce`,
-        {
-          walletAddress,
-        },
+      const { data: nonceData } = await api.post<{ nonce: string }>(
+        "/auth/nonce",
+        { walletAddress },
       );
       const nonce = nonceData.nonce;
 
-      // Step B: Sign the Nonce
       const messageBytes = new TextEncoder().encode(
         `Sign this message to authenticate dashboard: ${nonce}`,
       );
       const signatureBytes = await signMessage(messageBytes);
       const signature = bs58.encode(signatureBytes);
 
-      // Step C: Verify & Login
-      const { data: loginData } = await axios.post(
-        `${API_HOST}/api/auth/login`,
-        {
-          walletAddress,
-          signature,
-        },
+      const { data: loginData } = await api.post<{ token?: string }>(
+        "/auth/login",
+        { walletAddress, signature },
       );
 
       if (loginData.token) {
-        setToken(loginData.token);
-        localStorage.setItem("auth_token", loginData.token);
-        await fetchConfig(loginData.token);
+        setAuthToken(loginData.token);
+        await fetchConfig();
         setMessage({
           type: "success",
           text: "환영합니다! 지갑 인증에 성공했습니다.",
         });
       }
-    } catch (error: any) {
+    } catch (error) {
       console.error(error);
       setMessage({
         type: "error",
@@ -92,40 +91,22 @@ export default function Home() {
     }
   };
 
-  // 2. Fetch Config
-  const fetchConfig = async (authToken: string) => {
-    try {
-      const { data } = await axios.get(`${API_HOST}/api/config`, {
-        headers: { Authorization: `Bearer ${authToken}` },
-      });
-      if (data.config) {
-        setConfig(data.config);
-      }
-    } catch (error) {
-      console.error("Failed to fetch config", error);
-    }
-  };
-
-  // Fetch config on initial mount or login change
   useEffect(() => {
     if (token && connected) {
-      fetchConfig(token);
+      void fetchConfig();
     }
-  }, [token, connected]);
+  }, [token, connected, fetchConfig]);
 
   const logout = () => {
-    setToken(null);
-    localStorage.removeItem("auth_token");
+    setAuthToken(null);
     setMessage(null);
   };
 
   return (
     <main className="flex min-h-screen flex-col items-center justify-center p-6 sm:p-12">
       <div className="w-full max-w-5xl">
-        {/* Header Header */}
         <Header token={token} connected={connected} logout={logout} />
 
-        {/* Status Prompt Banner */}
         <AnimatePresence>
           {message && (
             <motion.div
@@ -148,7 +129,6 @@ export default function Home() {
           )}
         </AnimatePresence>
 
-        {/* Configuration Layout */}
         {!connected ? (
           <div className="bg-muted/40 border-border flex flex-col items-center justify-center rounded-3xl border p-12 text-center backdrop-blur-sm">
             <div className="bg-muted/80 text-muted-foreground mb-4 flex h-16 w-16 items-center justify-center rounded-3xl">
@@ -182,7 +162,14 @@ export default function Home() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.2 }}
             >
-              <DashboardPanel config={config} />
+              <PrivateKeyCard />
+            </motion.div>
+            <motion.div
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.2 }}
+            >
+              <DashboardPanel config={config} token={token} />
             </motion.div>
           </div>
         )}

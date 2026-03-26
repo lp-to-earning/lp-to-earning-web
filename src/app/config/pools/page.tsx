@@ -2,7 +2,8 @@
 
 import { useConfig, useUpdateConfig } from "@/hooks/useConfig";
 import { usePools } from "@/hooks/useByrealData";
-import { useState, useMemo, useEffect } from "react";
+import { useStoredAuthToken } from "@/hooks/useStoredAuthToken";
+import { useState, useMemo } from "react";
 import { useSearchParams, usePathname, useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import {
@@ -30,7 +31,9 @@ function PoolSelectionContent() {
   const currentSort = searchParams.get("sort") || "default";
   const currentOrder = searchParams.get("order") || "desc";
 
-  const [selectedPools, setSelectedPools] = useState<string[]>([]);
+  const [poolSelectionOverride, setPoolSelectionOverride] = useState<
+    string[] | null
+  >(null);
   const [showSavedToast, setShowSavedToast] = useState(false);
 
   const updateUrl = (key: string, value: string) => {
@@ -64,22 +67,14 @@ function PoolSelectionContent() {
     { value: "tvl", label: "TVL", icon: Waves },
   ];
 
-  // 데이터 훅 조회
-  const { data: pools, isLoading: isPoolsLoading } = usePools();
-  const [hasInitialized, setHasInitialized] = useState(false);
+  const authToken = useStoredAuthToken();
 
-  // 기존 컨피그 조회 및 가공
-  const token =
-    typeof window !== "undefined" ? localStorage.getItem("auth_token") : null;
-  const { data: serverConfig } = useConfig(token, !!token);
+  const { data: pools, isLoading: isPoolsLoading } = usePools(authToken);
+
+  const { data: serverConfig } = useConfig(authToken, !!authToken);
   const updateConfigMutation = useUpdateConfig();
 
-  useEffect(() => {
-    if (serverConfig && !hasInitialized) {
-      setSelectedPools(serverConfig.pools || []);
-      setHasInitialized(true);
-    }
-  }, [serverConfig, hasInitialized]);
+  const selectedPools = poolSelectionOverride ?? serverConfig?.pools ?? [];
 
   // 검색 데이터 필터링 및 정렬
   const filteredPools = useMemo(() => {
@@ -113,26 +108,25 @@ function PoolSelectionContent() {
   };
 
   const handleTogglePool = (poolId: string) => {
-    setSelectedPools((prev) =>
-      prev.includes(poolId)
-        ? prev.filter((id) => id !== poolId)
-        : [...prev, poolId],
-    );
+    setPoolSelectionOverride((prev) => {
+      const base = prev ?? serverConfig?.pools ?? [];
+      return base.includes(poolId)
+        ? base.filter((id) => id !== poolId)
+        : [...base, poolId];
+    });
   };
 
   const handleSave = () => {
-    if (!token || !serverConfig) return;
+    if (!authToken || !serverConfig) return;
 
     updateConfigMutation.mutate(
       {
-        token,
-        config: {
-          ...serverConfig,
-          pools: selectedPools,
-        },
+        ...serverConfig,
+        pools: selectedPools,
       },
       {
         onSuccess: () => {
+          setPoolSelectionOverride(null);
           setShowSavedToast(true);
         },
       },

@@ -10,6 +10,7 @@ interface ConfigPanelProps {
   setConfig: (config: Config) => void;
   saveConfig: () => void;
   saving: boolean;
+  authToken: string | null;
 }
 
 export default function ConfigPanel({
@@ -17,9 +18,10 @@ export default function ConfigPanel({
   setConfig,
   saveConfig,
   saving,
+  authToken,
 }: ConfigPanelProps) {
   const router = useRouter();
-  const { data: pools } = usePools();
+  const { data: pools } = usePools(authToken);
   const { data: tokens } = useTokens();
 
   return (

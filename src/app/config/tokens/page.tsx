@@ -2,7 +2,8 @@
 
 import { useConfig, useUpdateConfig } from "@/hooks/useConfig";
 import { useTokens } from "@/hooks/useByrealData";
-import { useState, useMemo, useEffect } from "react";
+import { useStoredAuthToken } from "@/hooks/useStoredAuthToken";
+import { useState, useMemo } from "react";
 import { motion } from "framer-motion";
 import {
   ArrowLeft,
@@ -30,7 +31,9 @@ function TokenSelectionContent() {
   const currentSort = searchParams.get("sort") || "default";
   const currentOrder = searchParams.get("order") || "desc";
 
-  const [selectedTokens, setSelectedTokens] = useState<string[]>([]);
+  const [tokenSelectionOverride, setTokenSelectionOverride] = useState<
+    string[] | null
+  >(null);
   const [showSavedToast, setShowSavedToast] = useState(false);
 
   const handleSortClick = (sortValue: string) => {
@@ -67,20 +70,13 @@ function TokenSelectionContent() {
 
   // 데이터 훅 조회
   const { data: tokens, isLoading: isTokensLoading } = useTokens();
-  const [hasInitialized, setHasInitialized] = useState(false);
+  const authToken = useStoredAuthToken();
 
-  // 기존 컨피그 조회 및 가공
-  const token =
-    typeof window !== "undefined" ? localStorage.getItem("auth_token") : null;
-  const { data: serverConfig } = useConfig(token, !!token);
+  const { data: serverConfig } = useConfig(authToken, !!authToken);
   const updateConfigMutation = useUpdateConfig();
 
-  useEffect(() => {
-    if (serverConfig && !hasInitialized) {
-      setSelectedTokens(serverConfig.autoRechargeTokens || []);
-      setHasInitialized(true);
-    }
-  }, [serverConfig, hasInitialized]);
+  const selectedTokenMints =
+    tokenSelectionOverride ?? serverConfig?.autoRechargeTokens ?? [];
 
   const filteredTokens = useMemo(() => {
     let list =
@@ -125,24 +121,25 @@ function TokenSelectionContent() {
   };
 
   const handleToggleToken = (mint: string) => {
-    setSelectedTokens((prev) =>
-      prev.includes(mint) ? prev.filter((m) => m !== mint) : [...prev, mint],
-    );
+    setTokenSelectionOverride((prev) => {
+      const base = prev ?? serverConfig?.autoRechargeTokens ?? [];
+      return base.includes(mint)
+        ? base.filter((m) => m !== mint)
+        : [...base, mint];
+    });
   };
 
   const handleSave = () => {
-    if (!token || !serverConfig) return;
+    if (!authToken || !serverConfig) return;
 
     updateConfigMutation.mutate(
       {
-        token,
-        config: {
-          ...serverConfig,
-          autoRechargeTokens: selectedTokens,
-        },
+        ...serverConfig,
+        autoRechargeTokens: selectedTokenMints,
       },
       {
         onSuccess: () => {
+          setTokenSelectionOverride(null);
           setShowSavedToast(true);
         },
       },
@@ -222,7 +219,7 @@ function TokenSelectionContent() {
               className="grid grid-cols-1 gap-5 p-2 md:grid-cols-2 lg:grid-cols-3"
             >
               {filteredTokens?.map((token) => {
-                const isSelected = selectedTokens.includes(token.mint);
+                const isSelected = selectedTokenMints.includes(token.mint);
                 const spark = generateSparkline(token.mint);
                 const isPositive = (token.price_change_24h || 0) >= 0;
 

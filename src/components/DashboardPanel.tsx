@@ -21,8 +21,14 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { Card, CardContent } from "./Card";
-export default function DashboardPanel({ config }: { config: ConfigData }) {
-  const { data: pools } = usePools();
+export default function DashboardPanel({
+  config,
+  token,
+}: {
+  config: ConfigData;
+  token: string | null;
+}) {
+  const { data: pools } = usePools(token);
   const { data: tokens } = useTokens();
   return (
     <div className="grid grid-cols-1 gap-6 md:grid-cols-2">

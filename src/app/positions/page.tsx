@@ -2,7 +2,9 @@
 
 import { useEffect, useRef, useState, useMemo } from "react";
 import { useSearchParams, usePathname, useRouter } from "next/navigation";
+import Link from "next/link";
 import { usePositions } from "@/hooks/useByrealData";
+import { useStoredAuthToken } from "@/hooks/useStoredAuthToken";
 import { Card, CardContent } from "@/components/Card";
 import SortButtonGroup from "@/components/SortButtonGroup";
 import {
@@ -11,7 +13,6 @@ import {
   Layers,
   DollarSign,
   TrendingUp,
-  Percent,
   Search,
   Waves,
   LineChart,
@@ -19,7 +20,6 @@ import {
   Activity,
   Loader,
 } from "lucide-react";
-import Link from "next/link";
 import { motion } from "framer-motion";
 
 import { Suspense } from "react";
@@ -29,20 +29,45 @@ function PositionsContent() {
   const pathname = usePathname();
   const { replace } = useRouter();
 
+  const authToken = useStoredAuthToken();
+
   const search = searchParams.get("q") || "";
   const sortField = searchParams.get("sort") || "default";
   const sortType = (searchParams.get("order") || "desc") as "asc" | "desc";
 
-  // Fetch all items with a large pageSize to do Client-Side Search/Sort
-  const { data, isLoading, refetch, isRefetching } = usePositions(1, 500);
-  const positions = data?.positions || [];
+  const { data, isLoading, refetch, isRefetching } = usePositions(
+    authToken,
+    1,
+    500,
+  );
+  const positions = useMemo(
+    () => data?.positions ?? [],
+    [data?.positions],
+  );
   const pageSize = 12;
   const [visibleCount, setVisibleCount] = useState(pageSize);
   const observerRef = useRef<HTMLDivElement | null>(null);
 
   const summary = useMemo(() => {
+    const s = data?.summary;
+    if (s) {
+      return {
+        totalLiquidity: s.totalLiquidityUsd ?? 0,
+        totalEarned: s.totalEarnedUsd ?? 0,
+        totalPnL: s.totalPnlUsd ?? 0,
+        totalBonus: s.totalBonusUsd ?? 0,
+      };
+    }
     return positions.reduce(
-      (acc: any, pos: any) => {
+      (
+        acc: {
+          totalLiquidity: number;
+          totalEarned: number;
+          totalPnL: number;
+          totalBonus: number;
+        },
+        pos: Position,
+      ) => {
         acc.totalLiquidity += parseFloat(pos.liquidityUsd || "0");
         acc.totalEarned += parseFloat(pos.earnedUsd || "0");
         acc.totalPnL += parseFloat(pos.pnlUsd || "0");
@@ -51,7 +76,7 @@ function PositionsContent() {
       },
       { totalLiquidity: 0, totalEarned: 0, totalPnL: 0, totalBonus: 0 },
     );
-  }, [positions]);
+  }, [data?.summary, positions]);
 
   const sortItems = [
     { value: "default", label: "기본 정렬" },
@@ -79,7 +104,7 @@ function PositionsContent() {
     if (search) {
       const q = search.toLowerCase();
       list = list.filter(
-        (pos: any) =>
+        (pos: Position) =>
           pos.pair.toLowerCase().includes(q) ||
           pos.nftMintAddress.toLowerCase().includes(q) ||
           pos.poolAddress.toLowerCase().includes(q),
@@ -87,9 +112,13 @@ function PositionsContent() {
     }
 
     if (sortField !== "default") {
-      list.sort((a: any, b: any) => {
-        const valA = parseFloat(a[sortField] || "0");
-        const valB = parseFloat(b[sortField] || "0");
+      list.sort((a: Position, b: Position) => {
+        const valA = parseFloat(
+          String(a[sortField as keyof Position] ?? "0") || "0",
+        );
+        const valB = parseFloat(
+          String(b[sortField as keyof Position] ?? "0") || "0",
+        );
         return sortType === "desc" ? valB - valA : valA - valB;
       });
     }
@@ -122,6 +151,26 @@ function PositionsContent() {
   }, [visibleCount, filteredAndSorted.length]);
 
   const hasNextPage = visibleCount < filteredAndSorted.length;
+
+  if (!authToken) {
+    return (
+      <main className="flex min-h-screen flex-col items-center justify-center p-6 sm:p-12">
+        <div className="glass ghost-border w-full max-w-md rounded-3xl p-10 text-center">
+          <h1 className="text-xl font-bold">로그인이 필요합니다</h1>
+          <p className="text-muted-foreground mt-3 text-sm">
+            포지션 목록은 JWT 인증 후에 조회할 수 있습니다. 홈에서 지갑 연결 후
+            서명 로그인을 완료해 주세요.
+          </p>
+          <Link
+            href="/"
+            className="mt-6 inline-block rounded-xl bg-indigo-600 px-6 py-3 text-sm font-bold text-white hover:bg-indigo-500"
+          >
+            홈으로 이동
+          </Link>
+        </div>
+      </main>
+    );
+  }
 
   return (
     <main className="flex min-h-screen flex-col items-center p-6 sm:p-12">
@@ -236,7 +285,7 @@ function PositionsContent() {
         ) : filteredAndSorted.length > 0 ? (
           <div>
             <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
-              {visiblePositions.map((pos: any, idx: number) => (
+              {visiblePositions.map((pos: Position, idx: number) => (
                 <motion.div
                   key={pos.nftMintAddress || idx}
                   initial={{ opacity: 0, y: 10 }}

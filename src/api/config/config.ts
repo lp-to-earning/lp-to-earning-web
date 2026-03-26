@@ -1,11 +1,7 @@
-import axios from "axios";
+import { getAuthedAxios } from "@/lib/authed-axios";
 
-const API_HOST = process.env.NEXT_PUBLIC_API_HOST || "";
-
-export const getConfig = async (token: string): Promise<Config> => {
-  const { data } = await axios.get<ConfigResponse>(`${API_HOST}/api/config`, {
-    headers: { Authorization: `Bearer ${token}` },
-  });
+export const getConfig = async (): Promise<Config> => {
+  const { data } = await getAuthedAxios().get<ConfigResponse>("/config");
 
   const sanitizeArr = (val: unknown) => {
     let arr = [];
@@ -30,14 +26,6 @@ export const getConfig = async (token: string): Promise<Config> => {
   return config;
 };
 
-export const updateConfig = async ({
-  token,
-  config,
-}: {
-  token: string;
-  config: Config;
-}): Promise<void> => {
-  await axios.post(`${API_HOST}/api/config`, config, {
-    headers: { Authorization: `Bearer ${token}` },
-  });
+export const updateConfig = async (config: Config): Promise<void> => {
+  await getAuthedAxios().post("/config", config);
 };
