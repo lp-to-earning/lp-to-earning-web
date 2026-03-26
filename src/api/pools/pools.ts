@@ -1,32 +1,38 @@
 "use server";
 
-import { exec } from "child_process";
-import { promisify } from "util";
+import { botFetch } from "@/api/botClient";
 
-const execAsync = promisify(exec);
+interface BotPoolsResponse {
+  success: boolean;
+  data: {
+    pools: Pool[];
+  };
+}
+
+interface BotTokensResponse {
+  success: boolean;
+  data: {
+    tokens: Token[];
+  };
+}
 
 export const getPools = async (): Promise<Pool[]> => {
   try {
-    const { stdout } = await execAsync(
-      "byreal-cli pools -o json --non-interactive",
-    );
-    const parsedData = JSON.parse(stdout);
-    return parsedData?.data?.pools || parsedData?.pools || [];
+    const res = await botFetch<BotPoolsResponse>("/api/pools");
+    return res.data?.pools || [];
   } catch (error) {
-    console.error("Failed to execute byreal-cli pools:", error);
+    console.error("Failed to fetch pools from bot API:", error);
     return [];
   }
 };
 
 export const getTokens = async (): Promise<Token[]> => {
   try {
-    const { stdout } = await execAsync(
-      "byreal-cli tokens -o json --non-interactive",
-    );
-    const parsedData = JSON.parse(stdout);
-    return parsedData?.data?.tokens || parsedData?.tokens || [];
+    // 봇 API에 tokens 엔드포인트가 없으므로 빈 배열 반환
+    // 필요 시 봇 API에 /api/tokens 추가 가능
+    return [];
   } catch (error) {
-    console.error("Failed to execute byreal-cli tokens:", error);
+    console.error("Failed to fetch tokens:", error);
     return [];
   }
 };

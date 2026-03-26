@@ -1,9 +1,19 @@
 "use server";
 
-import { exec } from "child_process";
-import { promisify } from "util";
+import { botFetch } from "@/api/botClient";
 
-const execAsync = promisify(exec);
+interface BotPositionsResponse {
+  success: boolean;
+  data: {
+    summary: {
+      count: number;
+      totalLiquidityUsd: number;
+      totalEarnedUsd: number;
+      totalPnlUsd: number;
+    };
+    positions: Position[];
+  };
+}
 
 export interface PositionsResult {
   positions: Position[];
@@ -15,16 +25,19 @@ export const getPositions = async (
   pageSize: number = 20,
 ): Promise<PositionsResult> => {
   try {
-    const { stdout } = await execAsync(
-      `byreal-cli -o json positions list --page ${page} --page-size ${pageSize}`,
-    );
-    const parsedData = JSON.parse(stdout);
+    const res = await botFetch<BotPositionsResponse>("/api/positions");
+    const positions = res.data?.positions || [];
+
+    // 클라이언트 사이드 페이지네이션
+    const start = (page - 1) * pageSize;
+    const paged = positions.slice(start, start + pageSize);
+
     return {
-      positions: parsedData?.data?.positions || [],
-      total: parsedData?.data?.total || 0,
+      positions: paged,
+      total: positions.length,
     };
   } catch (error) {
-    console.error("Failed to execute byreal-cli positions:", error);
+    console.error("Failed to fetch positions from bot API:", error);
     return { positions: [], total: 0 };
   }
 };

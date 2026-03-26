@@ -1,9 +1,9 @@
 import axios from "axios";
 
-const API_HOST = process.env.NEXT_PUBLIC_API_HOST;
+const API_HOST = process.env.NEXT_PUBLIC_API_HOST || "http://16.171.21.155:3001";
 
 export const getConfig = async (token: string): Promise<Config> => {
-  const { data } = await axios.get<ConfigResponse>(`${API_HOST}/config`, {
+  const { data } = await axios.get<ConfigResponse>(`${API_HOST}/api/config`, {
     headers: { Authorization: `Bearer ${token}` },
   });
 
@@ -37,7 +37,7 @@ export const updateConfig = async ({
   token: string;
   config: Config;
 }): Promise<void> => {
-  await axios.post(`${API_HOST}/config`, config, {
+  await axios.post(`${API_HOST}/api/config`, config, {
     headers: { Authorization: `Bearer ${token}` },
   });
 };

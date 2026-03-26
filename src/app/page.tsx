@@ -10,7 +10,8 @@ import Header from "@/components/Header";
 import Button from "@/components/Button";
 import DashboardPanel from "@/components/DashboardPanel";
 
-const API_HOST = process.env.NEXT_PUBLIC_API_HOST;
+const API_HOST =
+  process.env.NEXT_PUBLIC_API_HOST || "http://16.171.21.155:3001";
 
 export default function Home() {
   const { publicKey, signMessage, connected } = useWallet();
@@ -48,9 +49,12 @@ export default function Home() {
       const walletAddress = publicKey.toString();
 
       // Step A: Get Nonce
-      const { data: nonceData } = await axios.post(`${API_HOST}/auth/nonce`, {
-        walletAddress,
-      });
+      const { data: nonceData } = await axios.post(
+        `${API_HOST}/api/auth/nonce`,
+        {
+          walletAddress,
+        },
+      );
       const nonce = nonceData.nonce;
 
       // Step B: Sign the Nonce
@@ -61,19 +65,22 @@ export default function Home() {
       const signature = bs58.encode(signatureBytes);
 
       // Step C: Verify & Login
-      const { data: loginData } = await axios.post(`${API_HOST}/auth/login`, {
-        walletAddress,
-        signature,
-      });
+      const { data: loginData } = await axios.post(
+        `${API_HOST}/api/auth/login`,
+        {
+          walletAddress,
+          signature,
+        },
+      );
 
       if (loginData.token) {
         setToken(loginData.token);
         localStorage.setItem("auth_token", loginData.token);
+        await fetchConfig(loginData.token);
         setMessage({
           type: "success",
           text: "환영합니다! 지갑 인증에 성공했습니다.",
         });
-        fetchConfig(loginData.token);
       }
     } catch (error: any) {
       console.error(error);
@@ -89,7 +96,7 @@ export default function Home() {
   // 2. Fetch Config
   const fetchConfig = async (authToken: string) => {
     try {
-      const { data } = await axios.get(`${API_HOST}/config`, {
+      const { data } = await axios.get(`${API_HOST}/api/config`, {
         headers: { Authorization: `Bearer ${authToken}` },
       });
       if (data.config) {
