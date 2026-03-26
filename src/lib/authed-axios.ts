@@ -1,5 +1,6 @@
 import axios, { type AxiosInstance } from "axios";
 import { getApiBaseUrl } from "@/lib/api-url";
+import { clearPrivateKeyRegistered } from "@/lib/private-key-registration";
 
 export const AUTH_TOKEN_STORAGE_KEY = "auth_token";
 
@@ -43,6 +44,7 @@ export function getAuthedAxios(): AxiosInstance {
         const status = err.response?.status;
         if (status === 401 || status === 403) {
           localStorage.removeItem(AUTH_TOKEN_STORAGE_KEY);
+          clearPrivateKeyRegistered();
           notifyAuthTokenChanged();
           window.location.assign("/");
         }

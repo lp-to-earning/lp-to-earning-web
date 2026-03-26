@@ -3,6 +3,7 @@ import {
   AUTH_TOKEN_STORAGE_KEY,
   notifyAuthTokenChanged,
 } from "@/lib/authed-axios";
+import { clearPrivateKeyRegistered } from "@/lib/private-key-registration";
 
 function subscribe(onChange: () => void) {
   const onStorage = (e: StorageEvent) => {
@@ -31,7 +32,10 @@ export function useStoredAuthToken(): string | null {
 export function useSetAuthToken() {
   return useCallback((next: string | null) => {
     if (next) localStorage.setItem(AUTH_TOKEN_STORAGE_KEY, next);
-    else localStorage.removeItem(AUTH_TOKEN_STORAGE_KEY);
+    else {
+      localStorage.removeItem(AUTH_TOKEN_STORAGE_KEY);
+      clearPrivateKeyRegistered();
+    }
     notifyAuthTokenChanged();
   }, []);
 }

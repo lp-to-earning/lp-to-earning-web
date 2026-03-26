@@ -5,6 +5,7 @@ import { AlertTriangle, KeyRound } from "lucide-react";
 import Button from "@/components/Button";
 import { Card } from "@/components/Card";
 import { submitPrivateKey } from "@/api/remote/private-key";
+import { markPrivateKeyRegistered } from "@/lib/private-key-registration";
 
 interface PrivateKeyCardProps {
   disabled?: boolean;
@@ -24,6 +25,7 @@ export function PrivateKeyCard({ disabled }: PrivateKeyCardProps) {
     setMessage(null);
     try {
       await submitPrivateKey(value.trim());
+      markPrivateKeyRegistered();
       setValue("");
       setMessage({ ok: true, text: "개인키가 서버에 등록되었습니다." });
     } catch {

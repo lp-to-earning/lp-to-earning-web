@@ -4,6 +4,8 @@ interface Config {
   minAprPercent: number;
   intervalMs: number;
   dryRun: boolean;
+  /** 서버 봇 루프에서 이 지갑을 처리할지 여부 */
+  isActive: boolean;
   pools: string[];
   autoRechargeTokens: string[];
 }

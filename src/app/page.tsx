@@ -14,13 +14,16 @@ import Button from "@/components/Button";
 import DashboardPanel from "@/components/DashboardPanel";
 import { PrivateKeyCard } from "@/components/PrivateKeyCard";
 import { createPublicApi } from "@/lib/authed-axios";
-import { getConfig } from "@/api/config/config";
+import { getConfig, updateConfig } from "@/api/config/config";
+import { usePrivateKeyRegistered } from "@/hooks/usePrivateKeyRegistered";
 
 export default function Home() {
   const { publicKey, signMessage, connected } = useWallet();
   const token = useStoredAuthToken();
   const setAuthToken = useSetAuthToken();
+  const hasPrivateKeyRegistered = usePrivateKeyRegistered();
   const [loading, setLoading] = useState(false);
+  const [botToggleLoading, setBotToggleLoading] = useState(false);
 
   const [config, setConfig] = useState<Config>({
     topN: 3,
@@ -28,6 +31,7 @@ export default function Home() {
     minAprPercent: 20.0,
     intervalMs: 1800000,
     dryRun: true,
+    isActive: false,
     pools: [],
     autoRechargeTokens: [],
   });
@@ -102,6 +106,30 @@ export default function Home() {
     setMessage(null);
   };
 
+  const toggleBotActive = async () => {
+    if (!hasPrivateKeyRegistered) return;
+    setBotToggleLoading(true);
+    setMessage(null);
+    const next = { ...config, isActive: !config.isActive };
+    try {
+      await updateConfig(next);
+      setConfig(next);
+      setMessage({
+        type: "success",
+        text: next.isActive
+          ? "봇이 활성화되었습니다. 다음 주기부터 실행됩니다."
+          : "봇이 비활성화되었습니다.",
+      });
+    } catch {
+      setMessage({
+        type: "error",
+        text: "봇 상태 변경에 실패했습니다.",
+      });
+    } finally {
+      setBotToggleLoading(false);
+    }
+  };
+
   return (
     <main className="flex min-h-screen flex-col items-center justify-center p-6 sm:p-12">
       <div className="w-full max-w-5xl">
@@ -169,7 +197,13 @@ export default function Home() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.2 }}
             >
-              <DashboardPanel config={config} token={token} />
+              <DashboardPanel
+                config={config}
+                token={token}
+                hasPrivateKeyRegistered={hasPrivateKeyRegistered}
+                botToggleLoading={botToggleLoading}
+                onToggleBotActive={() => void toggleBotActive()}
+              />
             </motion.div>
           </div>
         )}

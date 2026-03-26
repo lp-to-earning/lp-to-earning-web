@@ -1,3 +1,5 @@
+"use client";
+
 import { usePools, useTokens } from "@/hooks/useByrealData";
 
 interface ConfigData {
@@ -6,12 +8,12 @@ interface ConfigData {
   minAprPercent: number;
   intervalMs: number;
   dryRun: boolean;
+  isActive: boolean;
   pools?: string[];
   autoRechargeTokens?: string[];
 }
 
 import {
-  Play,
   Pause,
   Activity,
   Zap,
@@ -21,12 +23,20 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { Card, CardContent } from "./Card";
+import { BotActiveSwitch } from "./BotActiveSwitch";
+
 export default function DashboardPanel({
   config,
   token,
+  hasPrivateKeyRegistered,
+  botToggleLoading,
+  onToggleBotActive,
 }: {
   config: ConfigData;
   token: string | null;
+  hasPrivateKeyRegistered: boolean;
+  botToggleLoading: boolean;
+  onToggleBotActive: () => void;
 }) {
   const { data: pools } = usePools(token);
   const { data: tokens } = useTokens();
@@ -45,15 +55,11 @@ export default function DashboardPanel({
         }
       >
         <div className="space-y-4">
-          <CardContent
-            icon={Play}
-            label="봇 상태"
-            value="Background 스캔 중"
-            iconBgClass="bg-indigo-500/10"
-            iconColorClass="text-indigo-400"
-            rightElement={
-              <span className="inline-flex h-3 w-3 animate-pulse rounded-full bg-green-500" />
-            }
+          <BotActiveSwitch
+            isActive={config.isActive}
+            disabled={!hasPrivateKeyRegistered}
+            loading={botToggleLoading}
+            onToggle={onToggleBotActive}
           />
 
           <CardContent

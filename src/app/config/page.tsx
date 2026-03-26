@@ -12,12 +12,14 @@ import {
 import Header from "@/components/Header";
 import ConfigPanel from "@/app/config/component/ConfigPanel";
 import { PrivateKeyCard } from "@/components/PrivateKeyCard";
+import { usePrivateKeyRegistered } from "@/hooks/usePrivateKeyRegistered";
 import Link from "next/link";
 
 export default function ConfigPage() {
   const { connected } = useWallet();
   const token = useStoredAuthToken();
   const setAuthToken = useSetAuthToken();
+  const hasPrivateKeyRegistered = usePrivateKeyRegistered();
   const [localConfig, setLocalConfig] = useState<Config | null>(null);
   const [message, setMessage] = useState<{
     type: "success" | "error";
@@ -33,6 +35,7 @@ export default function ConfigPage() {
     minAprPercent: 20.0,
     intervalMs: 1800000,
     dryRun: true,
+    isActive: false,
     pools: [],
     autoRechargeTokens: [],
     ...(serverConfig || {}),
@@ -133,6 +136,7 @@ export default function ConfigPage() {
               saveConfig={saveConfig}
               saving={updateConfigMutation.isPending}
               authToken={token}
+              hasPrivateKeyRegistered={hasPrivateKeyRegistered}
             />
           </motion.div>
         </div>

@@ -1,4 +1,4 @@
-import { Settings, Save, ArrowLeft, X, Layers } from "lucide-react";
+import { Settings, Save, ArrowLeft, X, Layers, Power } from "lucide-react";
 import Button from "../../../components/Button";
 import { useRouter } from "next/navigation";
 import { usePools, useTokens } from "@/hooks/useByrealData";
@@ -11,6 +11,7 @@ interface ConfigPanelProps {
   saveConfig: () => void;
   saving: boolean;
   authToken: string | null;
+  hasPrivateKeyRegistered: boolean;
 }
 
 export default function ConfigPanel({
@@ -19,6 +20,7 @@ export default function ConfigPanel({
   saveConfig,
   saving,
   authToken,
+  hasPrivateKeyRegistered,
 }: ConfigPanelProps) {
   const router = useRouter();
   const { data: pools } = usePools(authToken);
@@ -45,6 +47,55 @@ export default function ConfigPanel({
       className="p-8"
     >
       <div className="space-y-6">
+        <div className="border-border/50 bg-muted/20 rounded-2xl border p-4">
+          <div className="flex flex-wrap items-start justify-between gap-4">
+            <div className="flex gap-3">
+              <div className="bg-muted flex h-10 w-10 items-center justify-center rounded-xl">
+                <Power
+                  className={`h-5 w-5 ${config.isActive ? "text-emerald-400" : "text-muted-foreground"}`}
+                />
+              </div>
+              <div>
+                <label className="text-foreground block text-sm font-medium">
+                  봇 자동 실행 (isActive)
+                </label>
+                <p className="text-muted-foreground mt-1 max-w-md text-xs">
+                  {hasPrivateKeyRegistered
+                    ? "저장 시 서버에 반영됩니다. 대시보드에서 즉시 토글할 수도 있습니다."
+                    : "개인키를 먼저 등록한 뒤 활성화할 수 있습니다."}
+                </p>
+              </div>
+            </div>
+            <span
+              className={`shrink-0 rounded-full px-2.5 py-1 text-xs font-semibold ${
+                config.isActive
+                  ? "border border-emerald-500/40 bg-emerald-500/15 text-emerald-300"
+                  : "border border-zinc-500/40 bg-zinc-500/10 text-zinc-400"
+              }`}
+            >
+              {config.isActive ? "Running" : "Stopped"}
+            </span>
+          </div>
+          <div className="mt-4 flex items-center gap-2">
+            <input
+              type="checkbox"
+              id="config-is-active"
+              checked={config.isActive}
+              disabled={!hasPrivateKeyRegistered}
+              onChange={(e) =>
+                setConfig({ ...config, isActive: e.target.checked })
+              }
+              className="bg-muted border-border h-4 w-4 rounded text-indigo-600 focus:ring-indigo-500 disabled:opacity-40"
+            />
+            <label
+              htmlFor="config-is-active"
+              className={`text-sm font-medium ${!hasPrivateKeyRegistered ? "text-muted-foreground" : "text-foreground"}`}
+            >
+              봇 켜기
+            </label>
+          </div>
+        </div>
+
         <div>
           <label className="text-foreground mb-2 block text-sm font-medium">
             상위 포지션 트래킹 수 (Top N)
