@@ -74,7 +74,7 @@ export async function fetchUserPositions(
   page: number,
   pageSize: number,
 ): Promise<UserPositionsResult> {
-  const { data } = await getAuthedAxios().get<unknown>("/positions");
+  const { data } = await getAuthedAxios().get<unknown>("positions");
   const root = unwrapPayload(data) ?? (data as Record<string, unknown>) ?? {};
   const rawList = Array.isArray(root.positions)
     ? (root.positions as unknown[]).map(normalizePosition)

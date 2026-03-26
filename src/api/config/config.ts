@@ -17,7 +17,7 @@ export interface ConfigLoadResult {
 }
 
 export async function getConfig(): Promise<ConfigLoadResult> {
-  const { data } = await getAuthedAxios().get<ConfigResponse>("/config");
+  const { data } = await getAuthedAxios().get<ConfigResponse>("config");
 
   const hasPrivateKey = !!data.hasPrivateKey;
 
@@ -53,7 +53,7 @@ export async function getConfig(): Promise<ConfigLoadResult> {
 
 /** 서버 `POST /api/config`가 받는 필드만 전송 (Prisma/스키마와 불일치 필드 제거) */
 export async function updateConfig(config: Config): Promise<void> {
-  await getAuthedAxios().post("/config", {
+  await getAuthedAxios().post("config", {
     isActive: config.isActive,
     topN: config.topN,
     copyAmountUsd: config.copyAmountUsd,

@@ -43,7 +43,7 @@ function normalizePool(entry: unknown): Pool {
 }
 
 export async function fetchUserPools(): Promise<Pool[]> {
-  const { data } = await getAuthedAxios().get<unknown>("/pools");
+  const { data } = await getAuthedAxios().get<unknown>("pools");
   const root = unwrapPayload(data) ?? (data as Record<string, unknown>) ?? {};
   let list: unknown[] = [];
 

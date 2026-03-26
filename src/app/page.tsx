@@ -75,7 +75,7 @@ export default function Home() {
       const api = createPublicApi();
 
       const { data: nonceData } = await api.post<{ nonce: string }>(
-        "/auth/nonce",
+        "auth/nonce",
         { walletAddress },
       );
       const nonce = nonceData.nonce;
@@ -87,7 +87,7 @@ export default function Home() {
       const signature = bs58.encode(signatureBytes);
 
       const { data: loginData } = await api.post<{ token?: string }>(
-        "/auth/login",
+        "auth/login",
         { walletAddress, signature },
       );
 
