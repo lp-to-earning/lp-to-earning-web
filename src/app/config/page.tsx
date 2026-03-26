@@ -5,7 +5,6 @@ import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { AlertCircle, CheckCircle2 } from "lucide-react";
 import { useConfig, useUpdateConfig } from "@/hooks/useConfig";
-import { Config } from "@/api/config/config";
 import Header from "@/components/Header";
 import ConfigPanel from "@/app/config/component/ConfigPanel";
 import Link from "next/link";

@@ -19,7 +19,9 @@ import { useSearchParams, usePathname, useRouter } from "next/navigation";
 import Image from "next/image";
 import SortButtonGroup from "@/components/SortButtonGroup";
 
-export default function TokenSelectionPage() {
+import { Suspense } from "react";
+
+function TokenSelectionContent() {
   const searchParams = useSearchParams();
   const pathname = usePathname();
   const { replace } = useRouter();
@@ -338,5 +340,19 @@ export default function TokenSelectionPage() {
         />
       </div>
     </main>
+  );
+}
+
+export default function TokenSelectionPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="flex h-screen items-center justify-center bg-black text-white">
+          <Loader className="animate-spin" size={32} />
+        </div>
+      }
+    >
+      <TokenSelectionContent />
+    </Suspense>
   );
 }

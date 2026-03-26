@@ -19,7 +19,9 @@ import Toast from "@/components/Toast";
 import Image from "next/image";
 import SortButtonGroup from "@/components/SortButtonGroup";
 
-export default function PoolSelectionPage() {
+import { Suspense } from "react";
+
+function PoolSelectionContent() {
   const searchParams = useSearchParams();
   const pathname = usePathname();
   const { replace } = useRouter();
@@ -384,5 +386,19 @@ export default function PoolSelectionPage() {
         />
       </div>
     </main>
+  );
+}
+
+export default function PoolSelectionPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="flex h-screen items-center justify-center bg-black text-white">
+          <Loader className="animate-spin" size={32} />
+        </div>
+      }
+    >
+      <PoolSelectionContent />
+    </Suspense>
   );
 }

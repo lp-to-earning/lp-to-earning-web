@@ -17,11 +17,14 @@ import {
   LineChart,
   Gift,
   Activity,
+  Loader,
 } from "lucide-react";
 import Link from "next/link";
 import { motion } from "framer-motion";
 
-export default function PositionsPage() {
+import { Suspense } from "react";
+
+function PositionsContent() {
   const searchParams = useSearchParams();
   const pathname = usePathname();
   const { replace } = useRouter();
@@ -333,5 +336,19 @@ export default function PositionsPage() {
         )}
       </div>
     </main>
+  );
+}
+
+export default function PositionsPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="flex h-screen items-center justify-center bg-black text-white">
+          <Loader className="animate-spin" size={32} />
+        </div>
+      }
+    >
+      <PositionsContent />
+    </Suspense>
   );
 }
