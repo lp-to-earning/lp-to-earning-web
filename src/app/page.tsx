@@ -23,16 +23,16 @@ import {
   clearPrivateKeyRegistered,
   markPrivateKeyRegistered,
 } from "@/lib/private-key-registration";
-import { usePrivateKeyRegistered } from "@/hooks/usePrivateKeyRegistered";
 
 export default function Home() {
   const { publicKey, signMessage, connected } = useWallet();
   const token = useStoredAuthToken();
   const setAuthToken = useSetAuthToken();
-  const privateKeyLocal = usePrivateKeyRegistered();
   const [loading, setLoading] = useState(false);
   const [botToggleLoading, setBotToggleLoading] = useState(false);
   const [configLoad, setConfigLoad] = useState<ConfigLoadResult | null>(null);
+  /** 서버 /config 응답 전에는 개인키 UI를 추측하지 않음 (localStorage 오판 방지) */
+  const [configReady, setConfigReady] = useState(false);
 
   const [config, setConfig] = useState<Config>({
     topN: 3,
@@ -51,6 +51,7 @@ export default function Home() {
   } | null>(null);
 
   const fetchConfig = useCallback(async () => {
+    setConfigReady(false);
     try {
       const next = await getConfig();
       setConfig(next.config);
@@ -59,11 +60,18 @@ export default function Home() {
       else clearPrivateKeyRegistered();
     } catch (error) {
       console.error("Failed to fetch config", error);
+      setConfigLoad(null);
+    } finally {
+      setConfigReady(true);
     }
   }, []);
 
-  const hasPrivateKeyRegistered =
-    configLoad !== null ? configLoad.hasPrivateKey : privateKeyLocal;
+  const hasPrivateKeyFromServer =
+    configReady && configLoad ? configLoad.hasPrivateKey : false;
+
+  const privateKeyUiState: boolean | undefined = !configReady
+    ? undefined
+    : (configLoad?.hasPrivateKey ?? false);
 
   const handleLogin = async () => {
     if (!publicKey || !signMessage) return;
@@ -117,7 +125,10 @@ export default function Home() {
   }, [token, connected, fetchConfig]);
 
   useEffect(() => {
-    if (!token) setConfigLoad(null);
+    if (!token) {
+      setConfigLoad(null);
+      setConfigReady(false);
+    }
   }, [token]);
 
   const logout = () => {
@@ -126,7 +137,7 @@ export default function Home() {
   };
 
   const toggleBotActive = async () => {
-    if (!hasPrivateKeyRegistered) return;
+    if (!hasPrivateKeyFromServer) return;
     setBotToggleLoading(true);
     setMessage(null);
     const next = { ...config, isActive: !config.isActive };
@@ -210,7 +221,7 @@ export default function Home() {
               transition={{ duration: 0.2 }}
             >
               <PrivateKeyCard
-                hasPrivateKey={hasPrivateKeyRegistered}
+                hasPrivateKey={privateKeyUiState}
                 onPrivateKeySaved={() => void fetchConfig()}
               />
             </motion.div>
@@ -222,7 +233,7 @@ export default function Home() {
               <DashboardPanel
                 config={config}
                 token={token}
-                hasPrivateKeyRegistered={hasPrivateKeyRegistered}
+                hasPrivateKeyRegistered={hasPrivateKeyFromServer}
                 botToggleLoading={botToggleLoading}
                 onToggleBotActive={() => void toggleBotActive()}
               />

@@ -2,7 +2,7 @@
 
 import { useState, type FormEvent } from "react";
 import { useQueryClient } from "@tanstack/react-query";
-import { AlertTriangle, CheckCircle2, KeyRound } from "lucide-react";
+import { AlertTriangle, CheckCircle2, KeyRound, Loader } from "lucide-react";
 import Button from "@/components/Button";
 import { Card } from "@/components/Card";
 import { submitPrivateKey } from "@/api/remote/private-key";
@@ -13,15 +13,19 @@ const MASKED_KEY_PLACEHOLDER = "••••••••••••••••
 
 interface PrivateKeyCardProps {
   disabled?: boolean;
-  /** 서버 GET /config 의 hasPrivateKey — true면 입력 막고 마스킹 표시 */
-  hasPrivateKey?: boolean;
-  /** 등록 성공 후 (홈 등 useConfig 미사용 화면에서 refetch용) */
+  /**
+   * 서버 GET /config 의 hasPrivateKey.
+   * - true: 등록됨(마스킹)
+   * - false: 미등록(입력 폼)
+   * - undefined: 아직 서버 확인 전 — localStorage 등으로 추측하지 않음
+   */
+  hasPrivateKey?: boolean | undefined;
   onPrivateKeySaved?: () => void;
 }
 
 export function PrivateKeyCard({
   disabled,
-  hasPrivateKey = false,
+  hasPrivateKey,
   onPrivateKeySaved,
 }: PrivateKeyCardProps) {
   const queryClient = useQueryClient();
@@ -33,7 +37,7 @@ export function PrivateKeyCard({
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
-    if (!value.trim() || disabled || hasPrivateKey) return;
+    if (!value.trim() || disabled || hasPrivateKey !== false) return;
     setLoading(true);
     setMessage(null);
     try {
@@ -53,7 +57,7 @@ export function PrivateKeyCard({
     }
   }
 
-  if (hasPrivateKey) {
+  if (hasPrivateKey === true) {
     return (
       <Card
         title={
@@ -88,6 +92,27 @@ export function PrivateKeyCard({
           <p className="text-muted-foreground mt-2 text-xs">
             변경이 필요하면 백엔드에서 키를 초기화한 뒤 다시 등록해 주세요.
           </p>
+        </div>
+      </Card>
+    );
+  }
+
+  if (hasPrivateKey === undefined) {
+    return (
+      <Card
+        title={
+          <>
+            <KeyRound className="text-muted-foreground h-5 w-5" />
+            <span className="text-lg font-bold normal-case">
+              봇 지갑 개인키 등록
+            </span>
+          </>
+        }
+        className="p-6"
+      >
+        <div className="text-muted-foreground flex items-center gap-3 py-8 text-sm">
+          <Loader className="h-5 w-5 shrink-0 animate-spin" />
+          서버에서 개인키 등록 여부를 확인하는 중입니다…
         </div>
       </Card>
     );

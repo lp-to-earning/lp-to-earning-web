@@ -12,30 +12,31 @@ import {
 import Header from "@/components/Header";
 import ConfigPanel from "@/app/config/component/ConfigPanel";
 import { PrivateKeyCard } from "@/components/PrivateKeyCard";
-import { usePrivateKeyRegistered } from "@/hooks/usePrivateKeyRegistered";
 import Link from "next/link";
 
 export default function ConfigPage() {
   const { connected } = useWallet();
   const token = useStoredAuthToken();
   const setAuthToken = useSetAuthToken();
-  const privateKeyLocal = usePrivateKeyRegistered();
   const [localConfig, setLocalConfig] = useState<Config | null>(null);
   const [message, setMessage] = useState<{
     type: "success" | "error";
     text: string;
   } | null>(null);
 
-  const { data: configData, isSuccess: isConfigSuccess } = useConfig(
+  const { data: configData, isPending, isSuccess } = useConfig(
     token,
     connected,
   );
   const updateConfigMutation = useUpdateConfig();
 
-  const hasPrivateKeyRegistered =
-    isConfigSuccess && configData !== undefined
+  const privateKeyUiState: boolean | undefined = isPending
+    ? undefined
+    : isSuccess && configData
       ? configData.hasPrivateKey
-      : privateKeyLocal;
+      : false;
+
+  const hasPrivateKeyRegistered = privateKeyUiState === true;
 
   const serverConfigPart = configData?.config;
 
@@ -133,7 +134,7 @@ export default function ConfigPage() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.2 }}
           >
-            <PrivateKeyCard hasPrivateKey={hasPrivateKeyRegistered} />
+            <PrivateKeyCard hasPrivateKey={privateKeyUiState} />
           </motion.div>
           <motion.div
             initial={{ opacity: 0, y: 10 }}
