@@ -11,7 +11,9 @@ interface Config {
 }
 
 interface ConfigResponse {
-  config: Config;
+  config: Config | null;
+  /** 서버: User.encryptedPrivateKey 존재 여부 */
+  hasPrivateKey?: boolean;
 }
 
 interface Token {

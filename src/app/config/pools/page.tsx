@@ -71,7 +71,8 @@ function PoolSelectionContent() {
 
   const { data: pools, isLoading: isPoolsLoading } = usePools(authToken);
 
-  const { data: serverConfig } = useConfig(authToken, !!authToken);
+  const { data: configData } = useConfig(authToken, !!authToken);
+  const serverConfig = configData?.config;
   const updateConfigMutation = useUpdateConfig();
 
   const selectedPools = poolSelectionOverride ?? serverConfig?.pools ?? [];

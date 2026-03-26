@@ -1,12 +1,18 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { getConfig, updateConfig } from "@/api/config/config";
+import {
+  getConfig,
+  updateConfig,
+  type ConfigLoadResult,
+} from "@/api/config/config";
 
 export const configKeys = {
   all: ["config"] as const,
 };
 
+export type { ConfigLoadResult };
+
 export const useConfig = (token: string | null, connected: boolean) => {
-  return useQuery({
+  return useQuery<ConfigLoadResult>({
     queryKey: configKeys.all,
     queryFn: getConfig,
     enabled: !!token && connected,

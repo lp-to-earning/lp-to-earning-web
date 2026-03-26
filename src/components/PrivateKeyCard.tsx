@@ -1,17 +1,30 @@
 "use client";
 
 import { useState, type FormEvent } from "react";
-import { AlertTriangle, KeyRound } from "lucide-react";
+import { useQueryClient } from "@tanstack/react-query";
+import { AlertTriangle, CheckCircle2, KeyRound } from "lucide-react";
 import Button from "@/components/Button";
 import { Card } from "@/components/Card";
 import { submitPrivateKey } from "@/api/remote/private-key";
 import { markPrivateKeyRegistered } from "@/lib/private-key-registration";
+import { configKeys } from "@/hooks/useConfig";
+
+const MASKED_KEY_PLACEHOLDER = "•••••••••••••••••••••••••••••••••••••••••••";
 
 interface PrivateKeyCardProps {
   disabled?: boolean;
+  /** 서버 GET /config 의 hasPrivateKey — true면 입력 막고 마스킹 표시 */
+  hasPrivateKey?: boolean;
+  /** 등록 성공 후 (홈 등 useConfig 미사용 화면에서 refetch용) */
+  onPrivateKeySaved?: () => void;
 }
 
-export function PrivateKeyCard({ disabled }: PrivateKeyCardProps) {
+export function PrivateKeyCard({
+  disabled,
+  hasPrivateKey = false,
+  onPrivateKeySaved,
+}: PrivateKeyCardProps) {
+  const queryClient = useQueryClient();
   const [value, setValue] = useState("");
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState<{ ok: boolean; text: string } | null>(
@@ -20,7 +33,7 @@ export function PrivateKeyCard({ disabled }: PrivateKeyCardProps) {
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
-    if (!value.trim() || disabled) return;
+    if (!value.trim() || disabled || hasPrivateKey) return;
     setLoading(true);
     setMessage(null);
     try {
@@ -28,6 +41,8 @@ export function PrivateKeyCard({ disabled }: PrivateKeyCardProps) {
       markPrivateKeyRegistered();
       setValue("");
       setMessage({ ok: true, text: "개인키가 서버에 등록되었습니다." });
+      await queryClient.invalidateQueries({ queryKey: configKeys.all });
+      onPrivateKeySaved?.();
     } catch {
       setMessage({
         ok: false,
@@ -36,6 +51,46 @@ export function PrivateKeyCard({ disabled }: PrivateKeyCardProps) {
     } finally {
       setLoading(false);
     }
+  }
+
+  if (hasPrivateKey) {
+    return (
+      <Card
+        title={
+          <>
+            <KeyRound className="text-muted-foreground h-5 w-5" />
+            <span className="text-lg font-bold normal-case">
+              봇 지갑 개인키
+            </span>
+          </>
+        }
+        className="p-6"
+      >
+        <div className="border-emerald-500/30 bg-emerald-500/5 mb-4 flex gap-3 rounded-xl border p-3">
+          <CheckCircle2 className="mt-0.5 h-5 w-5 shrink-0 text-emerald-400" />
+          <p className="text-foreground/90 text-sm leading-relaxed">
+            서버에 개인키가 <strong className="text-foreground">암호화되어 등록</strong>
+            된 상태입니다. 보안을 위해 값은 다시 보이지 않습니다.
+          </p>
+        </div>
+
+        <div>
+          <label className="text-foreground mb-2 block text-sm font-medium">
+            등록된 개인키
+          </label>
+          <input
+            type="text"
+            readOnly
+            aria-readonly
+            value={MASKED_KEY_PLACEHOLDER}
+            className="bg-muted/40 border-border/80 text-muted-foreground w-full cursor-not-allowed rounded-xl border px-4 py-3 font-mono text-sm tracking-wider"
+          />
+          <p className="text-muted-foreground mt-2 text-xs">
+            변경이 필요하면 백엔드에서 키를 초기화한 뒤 다시 등록해 주세요.
+          </p>
+        </div>
+      </Card>
+    );
   }
 
   return (

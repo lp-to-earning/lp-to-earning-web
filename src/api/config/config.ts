@@ -11,8 +11,15 @@ const CONFIG_DEFAULTS: Config = {
   autoRechargeTokens: [],
 };
 
-export const getConfig = async (): Promise<Config> => {
+export interface ConfigLoadResult {
+  config: Config;
+  hasPrivateKey: boolean;
+}
+
+export async function getConfig(): Promise<ConfigLoadResult> {
   const { data } = await getAuthedAxios().get<ConfigResponse>("/config");
+
+  const hasPrivateKey = !!data.hasPrivateKey;
 
   const sanitizeArr = (val: unknown) => {
     let arr = [];
@@ -30,7 +37,7 @@ export const getConfig = async (): Promise<Config> => {
 
   const raw = data.config;
   if (!raw) {
-    return { ...CONFIG_DEFAULTS };
+    return { config: { ...CONFIG_DEFAULTS }, hasPrivateKey };
   }
 
   const config = { ...CONFIG_DEFAULTS, ...raw };
@@ -38,10 +45,22 @@ export const getConfig = async (): Promise<Config> => {
   config.autoRechargeTokens = sanitizeArr(config.autoRechargeTokens);
   config.isActive =
     typeof raw.isActive === "boolean" ? raw.isActive : CONFIG_DEFAULTS.isActive;
+  config.dryRun =
+    typeof raw.dryRun === "boolean" ? raw.dryRun : CONFIG_DEFAULTS.dryRun;
 
-  return config;
-};
+  return { config, hasPrivateKey };
+}
 
-export const updateConfig = async (config: Config): Promise<void> => {
-  await getAuthedAxios().post("/config", config);
-};
+/** 서버 `POST /api/config`가 받는 필드만 전송 (Prisma/스키마와 불일치 필드 제거) */
+export async function updateConfig(config: Config): Promise<void> {
+  await getAuthedAxios().post("/config", {
+    isActive: config.isActive,
+    topN: config.topN,
+    copyAmountUsd: config.copyAmountUsd,
+    minAprPercent: config.minAprPercent,
+    intervalMs: config.intervalMs,
+    dryRun: config.dryRun,
+    pools: config.pools,
+    autoRechargeTokens: config.autoRechargeTokens,
+  });
+}

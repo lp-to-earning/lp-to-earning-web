@@ -26,7 +26,9 @@ function normalizePool(entry: unknown): Pool {
 
   return {
     id,
-    pair: String(p.pair ?? p.pair_symbol ?? "Pool"),
+    pair: String(
+      p.pair ?? p.name ?? p.pair_symbol ?? (id ? id.slice(0, 8) : "Pool"),
+    ),
     token_a: emptyToken(),
     token_b: emptyToken(),
     tvl_usd: Number(p.tvl_usd ?? p.tvlUsd ?? 0),

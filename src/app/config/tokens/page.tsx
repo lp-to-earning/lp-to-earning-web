@@ -72,7 +72,8 @@ function TokenSelectionContent() {
   const { data: tokens, isLoading: isTokensLoading } = useTokens();
   const authToken = useStoredAuthToken();
 
-  const { data: serverConfig } = useConfig(authToken, !!authToken);
+  const { data: configData } = useConfig(authToken, !!authToken);
+  const serverConfig = configData?.config;
   const updateConfigMutation = useUpdateConfig();
 
   const selectedTokenMints =

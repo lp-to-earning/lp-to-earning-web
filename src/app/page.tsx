@@ -14,16 +14,25 @@ import Button from "@/components/Button";
 import DashboardPanel from "@/components/DashboardPanel";
 import { PrivateKeyCard } from "@/components/PrivateKeyCard";
 import { createPublicApi } from "@/lib/authed-axios";
-import { getConfig, updateConfig } from "@/api/config/config";
+import {
+  getConfig,
+  updateConfig,
+  type ConfigLoadResult,
+} from "@/api/config/config";
+import {
+  clearPrivateKeyRegistered,
+  markPrivateKeyRegistered,
+} from "@/lib/private-key-registration";
 import { usePrivateKeyRegistered } from "@/hooks/usePrivateKeyRegistered";
 
 export default function Home() {
   const { publicKey, signMessage, connected } = useWallet();
   const token = useStoredAuthToken();
   const setAuthToken = useSetAuthToken();
-  const hasPrivateKeyRegistered = usePrivateKeyRegistered();
+  const privateKeyLocal = usePrivateKeyRegistered();
   const [loading, setLoading] = useState(false);
   const [botToggleLoading, setBotToggleLoading] = useState(false);
+  const [configLoad, setConfigLoad] = useState<ConfigLoadResult | null>(null);
 
   const [config, setConfig] = useState<Config>({
     topN: 3,
@@ -44,11 +53,17 @@ export default function Home() {
   const fetchConfig = useCallback(async () => {
     try {
       const next = await getConfig();
-      setConfig(next);
+      setConfig(next.config);
+      setConfigLoad(next);
+      if (next.hasPrivateKey) markPrivateKeyRegistered();
+      else clearPrivateKeyRegistered();
     } catch (error) {
       console.error("Failed to fetch config", error);
     }
   }, []);
+
+  const hasPrivateKeyRegistered =
+    configLoad !== null ? configLoad.hasPrivateKey : privateKeyLocal;
 
   const handleLogin = async () => {
     if (!publicKey || !signMessage) return;
@@ -100,6 +115,10 @@ export default function Home() {
       void fetchConfig();
     }
   }, [token, connected, fetchConfig]);
+
+  useEffect(() => {
+    if (!token) setConfigLoad(null);
+  }, [token]);
 
   const logout = () => {
     setAuthToken(null);
@@ -190,7 +209,10 @@ export default function Home() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.2 }}
             >
-              <PrivateKeyCard />
+              <PrivateKeyCard
+                hasPrivateKey={hasPrivateKeyRegistered}
+                onPrivateKeySaved={() => void fetchConfig()}
+              />
             </motion.div>
             <motion.div
               initial={{ opacity: 0, y: 10 }}

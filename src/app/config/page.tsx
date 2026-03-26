@@ -19,15 +19,25 @@ export default function ConfigPage() {
   const { connected } = useWallet();
   const token = useStoredAuthToken();
   const setAuthToken = useSetAuthToken();
-  const hasPrivateKeyRegistered = usePrivateKeyRegistered();
+  const privateKeyLocal = usePrivateKeyRegistered();
   const [localConfig, setLocalConfig] = useState<Config | null>(null);
   const [message, setMessage] = useState<{
     type: "success" | "error";
     text: string;
   } | null>(null);
 
-  const { data: serverConfig } = useConfig(token, connected);
+  const { data: configData, isSuccess: isConfigSuccess } = useConfig(
+    token,
+    connected,
+  );
   const updateConfigMutation = useUpdateConfig();
+
+  const hasPrivateKeyRegistered =
+    isConfigSuccess && configData !== undefined
+      ? configData.hasPrivateKey
+      : privateKeyLocal;
+
+  const serverConfigPart = configData?.config;
 
   const config: Config = {
     topN: 3,
@@ -38,7 +48,7 @@ export default function ConfigPage() {
     isActive: false,
     pools: [],
     autoRechargeTokens: [],
-    ...(serverConfig || {}),
+    ...(serverConfigPart || {}),
     ...(localConfig || {}),
   };
 
@@ -123,7 +133,7 @@ export default function ConfigPage() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.2 }}
           >
-            <PrivateKeyCard />
+            <PrivateKeyCard hasPrivateKey={hasPrivateKeyRegistered} />
           </motion.div>
           <motion.div
             initial={{ opacity: 0, y: 10 }}
