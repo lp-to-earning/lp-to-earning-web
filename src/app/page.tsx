@@ -10,8 +10,7 @@ import Header from "@/components/Header";
 import Button from "@/components/Button";
 import DashboardPanel from "@/components/DashboardPanel";
 
-const API_HOST =
-  process.env.NEXT_PUBLIC_API_HOST || "http://16.171.21.155:3001";
+const API_HOST = process.env.NEXT_PUBLIC_API_HOST || "";
 
 export default function Home() {
   const { publicKey, signMessage, connected } = useWallet();

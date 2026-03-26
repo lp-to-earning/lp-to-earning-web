@@ -1,4 +1,4 @@
-const BOT_API_URL = process.env.BOT_API_URL || "http://16.171.21.155:3001";
+const BOT_API_URL = process.env.BOT_API_URL;
 const BOT_API_KEY = process.env.BOT_API_KEY || "";
 
 export async function botFetch<T>(path: string): Promise<T> {
