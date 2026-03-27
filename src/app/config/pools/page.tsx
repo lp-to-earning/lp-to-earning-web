@@ -76,7 +76,6 @@ function PoolSelectionContent() {
     isError: isPoolsError,
     error: poolsQueryError,
   } = usePools(authToken);
-  console.log("pools", pools);
   const { data: configData } = useConfig(authToken, !!authToken);
   const serverConfig = configData?.config;
   const updateConfigMutation = useUpdateConfig();
@@ -95,9 +94,7 @@ function PoolSelectionContent() {
           const label = String(pool.name ?? "").toLowerCase();
           const addr = String(pool.address ?? "").toLowerCase();
           const sym = `${pool.symbolA}/${pool.symbolB}`.toLowerCase();
-          return (
-            label.includes(q) || addr.includes(q) || sym.includes(q)
-          );
+          return label.includes(q) || addr.includes(q) || sym.includes(q);
         });
 
     const isDesc = currentOrder === "desc";

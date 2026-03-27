@@ -329,48 +329,6 @@ function TokenSelectionContent() {
                               )}
                             </p>
                           </div>
-                          <div>
-                            <p className="text-muted-foreground">Volume 24h</p>
-                            <p className="text-foreground mt-0.5 font-bold">
-                              $
-                              {token.volume_24h_usd
-                                ? Math.round(
-                                    token.volume_24h_usd,
-                                  ).toLocaleString()
-                                : "N/A"}
-                            </p>
-                          </div>
-                        </div>
-                      </div>
-
-                      <div className="border-border/20 mt-4 flex items-center justify-between border-t pt-4">
-                        <div className="h-[40px] max-w-[120px] flex-1 opacity-70 transition-all duration-300 group-hover:scale-[1.05] group-hover:opacity-100">
-                          <svg
-                            width="100%"
-                            height="100%"
-                            viewBox="0 -5 100 50"
-                            className="drop-shadow-md"
-                          >
-                            <path
-                              d={spark}
-                              fill="none"
-                              stroke={isPositive ? "#10b981" : "#ef4444"}
-                              strokeWidth="3"
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                            />
-                          </svg>
-                        </div>
-                        <div className="text-right">
-                          <p className="text-muted-foreground text-[10px] font-semibold tracking-wider uppercase">
-                            24h Chg
-                          </p>
-                          <p
-                            className={`text-lg font-bold ${isPositive ? "text-emerald-400" : "text-red-400"}`}
-                          >
-                            {isPositive ? "+" : ""}
-                            {(token.price_change_24h || 0).toFixed(2)}%
-                          </p>
                         </div>
                       </div>
                     </motion.div>
