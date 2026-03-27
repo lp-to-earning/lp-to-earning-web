@@ -83,25 +83,52 @@ function PoolSelectionContent() {
 
   const selectedPools = poolSelectionOverride ?? serverConfig?.pools ?? [];
 
-  // 검색 데이터 필터링 및 정렬
-  const filteredPools = useMemo(() => {
-    let list =
-      pools?.filter((pool) =>
-        pool.pair.toLowerCase().includes(searchQuery.toLowerCase()),
-      ) || [];
+  const totalPoolCount = pools?.length ?? 0;
+
+  /** 검색(페어·주소) → 정렬. 그리드·요약 숫자 모두 이 배열 기준으로 맞춤 */
+  const displayPools = useMemo(() => {
+    const q = searchQuery.trim().toLowerCase();
+    const base = pools ?? [];
+    const filtered = !q
+      ? base
+      : base.filter((pool) => {
+          const pair = pool.pair.toLowerCase();
+          const id = pool.id.toLowerCase();
+          return pair.includes(q) || id.includes(q);
+        });
 
     const isDesc = currentOrder === "desc";
+    const list = [...filtered];
 
     if (currentSort === "apr") {
-      list = [...list].sort((a, b) => (isDesc ? b.apr - a.apr : a.apr - b.apr));
+      list.sort((a, b) => (isDesc ? b.apr - a.apr : a.apr - b.apr));
     } else if (currentSort === "tvl") {
-      list = [...list].sort((a, b) =>
+      list.sort((a, b) =>
         isDesc ? b.tvl_usd - a.tvl_usd : a.tvl_usd - b.tvl_usd,
+      );
+    } else {
+      list.sort(
+        (a, b) =>
+          a.pair.localeCompare(b.pair, undefined, { sensitivity: "base" }) ||
+          a.id.localeCompare(b.id),
       );
     }
 
     return list;
   }, [pools, searchQuery, currentSort, currentOrder]);
+
+  const summaryFromDisplay = useMemo(() => {
+    if (displayPools.length === 0) {
+      return { highestApr: 0, totalVolume: 0 };
+    }
+    return {
+      highestApr: displayPools.reduce((m, p) => Math.max(m, p.apr), 0),
+      totalVolume: displayPools.reduce(
+        (s, p) => s + (p.volume_24h_usd || 0),
+        0,
+      ),
+    };
+  }, [displayPools]);
 
   const listResetKey = `${searchQuery}|${currentSort}|${currentOrder}`;
   const {
@@ -109,7 +136,7 @@ function PoolSelectionContent() {
     hasMore: hasMorePools,
     sentinelRef: poolSentinelRef,
     scrollRootRef: poolScrollRootRef,
-  } = useInfiniteReveal(filteredPools, {
+  } = useInfiniteReveal(displayPools, {
     batchSize: 20,
     resetKey: listResetKey,
   });
@@ -150,11 +177,6 @@ function PoolSelectionContent() {
       },
     );
   };
-
-  const highestApr =
-    pools?.reduce((max, p) => (p.apr > max ? p.apr : max), 0) || 0;
-  const totalVolume =
-    pools?.reduce((sum, p) => sum + (p.volume_24h_usd || 0), 0) || 0;
 
   return (
     <main className="text-foreground relative flex h-[100dvh] flex-col items-center overflow-hidden bg-black antialiased">
@@ -204,11 +226,16 @@ function PoolSelectionContent() {
               </div>
               <div>
                 <p className="text-muted-foreground text-xs font-medium">
-                  총 제공 유동성 풀
+                  목록에 맞는 풀
                 </p>
                 <h4 className="text-foreground mt-1 font-mono text-xl font-bold">
-                  {pools?.length || 0} 개
+                  {displayPools.length} 개
                 </h4>
+                {searchQuery.trim() ? (
+                  <p className="text-muted-foreground mt-0.5 text-[11px]">
+                    전체 {totalPoolCount}개 중
+                  </p>
+                ) : null}
               </div>
             </motion.div>
             <motion.div
@@ -222,10 +249,10 @@ function PoolSelectionContent() {
               </div>
               <div>
                 <p className="text-muted-foreground text-xs font-medium">
-                  최대 지원 APR 범위
+                  목록 중 최대 APR
                 </p>
                 <h4 className="mt-1 font-mono text-xl font-bold text-emerald-400">
-                  {highestApr.toFixed(1)}%
+                  {summaryFromDisplay.highestApr.toFixed(1)}%
                 </h4>
               </div>
             </motion.div>
@@ -240,10 +267,10 @@ function PoolSelectionContent() {
               </div>
               <div>
                 <p className="text-muted-foreground text-xs font-medium">
-                  24h 전체 거래량
+                  24h 거래량 (목록 기준)
                 </p>
                 <h4 className="text-foreground mt-1 font-mono text-xl font-bold">
-                  ${Math.round(totalVolume).toLocaleString()}
+                  ${Math.round(summaryFromDisplay.totalVolume).toLocaleString()}
                 </h4>
               </div>
             </motion.div>
@@ -266,7 +293,7 @@ function PoolSelectionContent() {
               />
               <input
                 type="text"
-                placeholder="풀 이름 검색 (예: SOL/USDC)"
+                placeholder="페어 또는 풀 주소 검색"
                 value={searchQuery}
                 onChange={(e) => updateUrl("q", e.target.value)}
                 className="bg-muted/30 border-border/30 w-full rounded-2xl border py-2.5 pr-4 pl-10 text-sm transition-all outline-none focus:border-indigo-500/50"
@@ -296,7 +323,7 @@ function PoolSelectionContent() {
                   : String(poolsQueryError)}
               </p>
             </div>
-          ) : filteredPools.length === 0 ? (
+          ) : displayPools.length === 0 ? (
             <div className="text-muted-foreground flex min-h-[200px] flex-col items-center justify-center text-sm">
               조건에 맞는 풀이 없습니다.
             </div>
@@ -307,103 +334,107 @@ function PoolSelectionContent() {
                 className="grid grid-cols-1 gap-5 p-2 md:grid-cols-2 lg:grid-cols-3"
               >
                 {visiblePools.map((pool) => {
-                const isSelected = selectedPools.includes(pool.id);
-                const spark = generateSparkline(pool.id);
-                return (
-                  <motion.div
-                    key={pool.id}
-                    whileHover={{ scale: 1.02 }}
-                    onClick={() => handleTogglePool(pool.id)}
-                    className={`glass ghost-border !border-opacity-50 hover:bg-muted/10 group relative flex cursor-pointer flex-col justify-between overflow-hidden rounded-3xl p-5 transition-all duration-300 ${
-                      isSelected
-                        ? "bg-indigo-500/5 shadow-[0_0_50px_rgba(99,102,241,0.05)] ring-2 ring-indigo-500"
-                        : ""
-                    }`}
-                  >
-                    <div>
-                      <div className="mb-4 flex items-start justify-between">
-                        <div className="flex items-center gap-2">
-                          <div className="relative flex h-8 w-8 items-center">
-                            {pool.token_a.logo_uri ? (
-                              <Image
-                                src={pool.token_a.logo_uri}
-                                className="absolute left-0 h-6 w-6 rounded-full border border-black"
-                                alt=""
-                                width={24}
-                                height={24}
-                                unoptimized={true}
-                              />
-                            ) : (
-                              <div className="absolute left-0 h-6 w-6 rounded-full bg-slate-700" />
-                            )}
-                            {pool.token_b.logo_uri ? (
-                              <Image
-                                src={pool.token_b.logo_uri}
-                                className="absolute left-3.5 z-10 h-6 w-6 rounded-full border border-black"
-                                alt=""
-                                width={24}
-                                height={24}
-                                unoptimized={true}
-                              />
-                            ) : (
-                              <div className="absolute left-3.5 z-10 h-6 w-6 rounded-full bg-slate-400" />
-                            )}
+                  const isSelected = selectedPools.includes(pool.id);
+                  const spark = generateSparkline(pool.id);
+                  return (
+                    <motion.div
+                      key={pool.id}
+                      whileHover={{ scale: 1.02 }}
+                      onClick={() => handleTogglePool(pool.id)}
+                      className={`glass ghost-border !border-opacity-50 hover:bg-muted/10 group relative flex cursor-pointer flex-col justify-between overflow-hidden rounded-3xl p-5 transition-all duration-300 ${
+                        isSelected
+                          ? "bg-indigo-500/5 shadow-[0_0_50px_rgba(99,102,241,0.05)] ring-2 ring-indigo-500"
+                          : ""
+                      }`}
+                    >
+                      <div>
+                        <div className="mb-4 flex items-start justify-between">
+                          <div className="flex items-center gap-2">
+                            <div className="relative flex h-8 w-8 items-center">
+                              {pool.token_a.logo_uri ? (
+                                <Image
+                                  src={pool.token_a.logo_uri}
+                                  className="absolute left-0 h-6 w-6 rounded-full border border-black"
+                                  alt=""
+                                  width={24}
+                                  height={24}
+                                  unoptimized={true}
+                                />
+                              ) : (
+                                <div className="absolute left-0 h-6 w-6 rounded-full bg-slate-700" />
+                              )}
+                              {pool.token_b.logo_uri ? (
+                                <Image
+                                  src={pool.token_b.logo_uri}
+                                  className="absolute left-3.5 z-10 h-6 w-6 rounded-full border border-black"
+                                  alt=""
+                                  width={24}
+                                  height={24}
+                                  unoptimized={true}
+                                />
+                              ) : (
+                                <div className="absolute left-3.5 z-10 h-6 w-6 rounded-full bg-slate-400" />
+                              )}
+                            </div>
+                            <h3 className="text-foreground font-mono text-sm font-bold">
+                              {pool.pair}
+                            </h3>
                           </div>
-                          <h3 className="text-foreground font-mono text-sm font-bold">
-                            {pool.pair}
-                          </h3>
+                          {isSelected && (
+                            <CheckCircle2
+                              size={18}
+                              className="text-indigo-500"
+                            />
+                          )}
                         </div>
-                        {isSelected && (
-                          <CheckCircle2 size={18} className="text-indigo-500" />
-                        )}
+
+                        <div className="grid grid-cols-2 gap-2 text-xs">
+                          <div>
+                            <p className="text-muted-foreground">TVL</p>
+                            <p className="text-foreground mt-0.5 font-bold">
+                              ${Math.round(pool.tvl_usd).toLocaleString()}
+                            </p>
+                          </div>
+                          <div>
+                            <p className="text-muted-foreground">Volume 24h</p>
+                            <p className="text-foreground mt-0.5 font-bold">
+                              $
+                              {Math.round(pool.volume_24h_usd).toLocaleString()}
+                            </p>
+                          </div>
+                        </div>
                       </div>
 
-                      <div className="grid grid-cols-2 gap-2 text-xs">
-                        <div>
-                          <p className="text-muted-foreground">TVL</p>
-                          <p className="text-foreground mt-0.5 font-bold">
-                            ${Math.round(pool.tvl_usd).toLocaleString()}
+                      <div className="border-border/20 mt-4 flex items-center justify-between border-t pt-4">
+                        <div className="h-[40px] max-w-[120px] flex-1 opacity-70 transition-all duration-300 group-hover:scale-[1.05] group-hover:opacity-100">
+                          <svg
+                            width="100%"
+                            height="100%"
+                            viewBox="0 -5 100 50"
+                            className="drop-shadow-md"
+                          >
+                            <path
+                              d={spark}
+                              fill="none"
+                              stroke="#6366f1"
+                              strokeWidth="3"
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                            />
+                          </svg>
+                        </div>
+                        <div className="text-right">
+                          <p className="text-muted-foreground text-[10px] font-semibold tracking-wider uppercase">
+                            Est. APR
+                          </p>
+                          <p className="text-lg font-extrabold text-emerald-400 drop-shadow-[0_0_8px_rgba(52,211,153,0.3)]">
+                            {pool.apr.toFixed(1)}%
                           </p>
                         </div>
-                        <div>
-                          <p className="text-muted-foreground">Volume 24h</p>
-                          <p className="text-foreground mt-0.5 font-bold">
-                            ${Math.round(pool.volume_24h_usd).toLocaleString()}
-                          </p>
-                        </div>
                       </div>
-                    </div>
-
-                    <div className="border-border/20 mt-4 flex items-center justify-between border-t pt-4">
-                      <div className="h-[40px] max-w-[120px] flex-1 opacity-70 transition-all duration-300 group-hover:scale-[1.05] group-hover:opacity-100">
-                        <svg
-                          width="100%"
-                          height="100%"
-                          viewBox="0 -5 100 50"
-                          className="drop-shadow-md"
-                        >
-                          <path
-                            d={spark}
-                            fill="none"
-                            stroke="#6366f1"
-                            strokeWidth="3"
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                          />
-                        </svg>
-                      </div>
-                      <div className="text-right">
-                        <p className="text-muted-foreground text-[10px] font-semibold tracking-wider uppercase">
-                          Est. APR
-                        </p>
-                        <p className="text-lg font-extrabold text-emerald-400 drop-shadow-[0_0_8px_rgba(52,211,153,0.3)]">
-                          {pool.apr.toFixed(1)}%
-                        </p>
-                      </div>
-                    </div>
-                  </motion.div>
-                );
-              })}
+                    </motion.div>
+                  );
+                })}
               </motion.div>
               <div
                 ref={poolSentinelRef}
