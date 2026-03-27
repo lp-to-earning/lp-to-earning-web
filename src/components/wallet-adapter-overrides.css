@@ -1,0 +1,31 @@
+/**
+ * wallet-adapter 기본 스타일 바로 다음에 로드되어야 함 (SolanaWalletProvider).
+ */
+.wallet-adapter-dropdown-list {
+  z-index: 400 !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  background: #1a1f2e !important;
+  border: 1px solid rgba(189, 157, 255, 0.22);
+  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.55);
+}
+
+.wallet-adapter-dropdown-list-item {
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
+.wallet-adapter-modal .wallet-adapter-modal-wrapper {
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  background: #1a1f2e !important;
+  border: 1px solid rgba(189, 157, 255, 0.25);
+}
+
+/* MetaMask — 목록·연결된 트리거 버튼 클릭 비활성화 */
+.wallet-adapter-modal-list > li:has(img[alt="MetaMask icon"]) .wallet-adapter-button,
+.wallet-adapter-dropdown > button.wallet-adapter-button:has(img[alt="MetaMask icon"]) {
+  pointer-events: none !important;
+  cursor: not-allowed !important;
+  opacity: 0.5 !important;
+}

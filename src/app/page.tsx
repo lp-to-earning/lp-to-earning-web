@@ -189,7 +189,7 @@ export default function Home() {
         </AnimatePresence>
 
         {!connected ? (
-          <div className="bg-muted/40 border-border flex flex-col items-center justify-center rounded-3xl border p-12 text-center backdrop-blur-sm">
+          <div className="bg-muted/55 border-border flex flex-col items-center justify-center rounded-3xl border p-12 text-center">
             <div className="bg-muted/80 text-muted-foreground mb-4 flex h-16 w-16 items-center justify-center rounded-3xl">
               <Settings size={32} />
             </div>
@@ -200,7 +200,7 @@ export default function Home() {
             </p>
           </div>
         ) : connected && !token ? (
-          <div className="bg-muted/40 border-border flex flex-col items-center justify-center rounded-3xl border p-12 text-center backdrop-blur-sm">
+          <div className="bg-muted/55 border-border flex flex-col items-center justify-center rounded-3xl border p-12 text-center">
             <h2 className="mb-2 text-xl font-bold">보안 로그인 인증</h2>
             <p className="text-muted-foreground mb-6 max-w-sm text-sm">
               주소 증명을 위해 메시지 고유 서명이 필요합니다. 아래 검증 버튼을

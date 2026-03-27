@@ -85,7 +85,7 @@ export default function ConfigPage() {
       <main className="flex min-h-screen flex-col items-center justify-center p-6 sm:p-12">
         <div className="w-full max-w-5xl">
           <Header token={token} connected={connected} logout={logout} />
-          <div className="bg-muted/40 border-border flex flex-col items-center justify-center rounded-3xl border p-12 text-center backdrop-blur-sm">
+          <div className="bg-muted/55 border-border flex flex-col items-center justify-center rounded-3xl border p-12 text-center">
             <h2 className="mb-2 text-xl font-bold">권한 없음</h2>
             <p className="text-muted-foreground mb-6 max-w-sm text-sm">
               설정 페이지에 접근하려면 먼저 홈페이지에서 로그인해주세요.

@@ -1,3 +1,5 @@
+"use client";
+
 import { LayoutDashboard } from "lucide-react";
 import { WalletMultiButton } from "@solana/wallet-adapter-react-ui";
 import Button from "@/components/Button";
@@ -10,7 +12,7 @@ interface HeaderProps {
 
 export default function Header({ token, connected, logout }: HeaderProps) {
   return (
-    <header className="glass ghost-border mb-8 flex flex-col items-center justify-between gap-4 rounded-3xl p-6 sm:flex-row">
+    <header className="surface-panel ghost-border relative z-20 mb-8 flex flex-col items-center justify-between gap-4 rounded-3xl p-6 sm:flex-row">
       <div className="flex items-center gap-3">
         <div className="from-primary-500 to-primary-800 rounded-2xl bg-gradient-to-br p-3 shadow-lg">
           <LayoutDashboard className="h-6 w-6 text-white" />

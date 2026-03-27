@@ -354,7 +354,7 @@ function PositionsContent() {
             </div>
           </div>
         ) : (
-          <div className="glass ghost-border rounded-3xl p-12 text-center backdrop-blur-sm">
+          <div className="glass ghost-border rounded-3xl p-12 text-center">
             <h2 className="text-lg font-bold">
               {search ? "검색 결과가 없습니다." : "보유한 포지션이 없습니다."}
             </h2>
