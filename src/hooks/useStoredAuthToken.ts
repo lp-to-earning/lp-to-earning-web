@@ -1,5 +1,6 @@
 import { useCallback, useSyncExternalStore } from "react";
 import {
+  AUTH_TOKEN_BOUND_WALLET_KEY,
   AUTH_TOKEN_STORAGE_KEY,
   notifyAuthTokenChanged,
 } from "@/lib/authed-axios";
@@ -30,10 +31,14 @@ export function useStoredAuthToken(): string | null {
 }
 
 export function useSetAuthToken() {
-  return useCallback((next: string | null) => {
-    if (next) localStorage.setItem(AUTH_TOKEN_STORAGE_KEY, next);
-    else {
+  return useCallback((next: string | null, boundWalletAddress?: string | null) => {
+    if (next) {
+      localStorage.setItem(AUTH_TOKEN_STORAGE_KEY, next);
+      if (boundWalletAddress)
+        localStorage.setItem(AUTH_TOKEN_BOUND_WALLET_KEY, boundWalletAddress);
+    } else {
       localStorage.removeItem(AUTH_TOKEN_STORAGE_KEY);
+      localStorage.removeItem(AUTH_TOKEN_BOUND_WALLET_KEY);
       clearPrivateKeyRegistered();
     }
     notifyAuthTokenChanged();

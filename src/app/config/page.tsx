@@ -1,7 +1,7 @@
 "use client";
 
 import { useWallet } from "@solana/wallet-adapter-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { AlertCircle, CheckCircle2 } from "lucide-react";
 import { useConfig, useUpdateConfig } from "@/hooks/useConfig";
@@ -10,6 +10,7 @@ import {
   useStoredAuthToken,
 } from "@/hooks/useStoredAuthToken";
 import Header from "@/components/Header";
+import { consumeWalletMismatchHint } from "@/components/WalletSessionSync";
 import ConfigPanel from "@/app/config/component/ConfigPanel";
 import { PrivateKeyCard } from "@/components/PrivateKeyCard";
 import Link from "next/link";
@@ -23,6 +24,15 @@ export default function ConfigPage() {
     type: "success" | "error";
     text: string;
   } | null>(null);
+  const [showWalletSwitchHint, setShowWalletSwitchHint] = useState(false);
+
+  useEffect(() => {
+    if (!token) {
+      if (consumeWalletMismatchHint()) setShowWalletSwitchHint(true);
+    } else {
+      setShowWalletSwitchHint(false);
+    }
+  }, [token]);
 
   const { data: configData, isPending, isSuccess } = useConfig(
     token,
@@ -87,6 +97,12 @@ export default function ConfigPage() {
           <Header token={token} connected={connected} logout={logout} />
           <div className="bg-muted/55 border-border flex flex-col items-center justify-center rounded-3xl border p-12 text-center">
             <h2 className="mb-2 text-xl font-bold">권한 없음</h2>
+            {showWalletSwitchHint && connected ? (
+              <p className="text-amber-300/90 mb-4 max-w-sm text-sm">
+                지갑 계정이 바뀌어 로그인 세션이 초기화되었습니다. 홈에서 새
+                계정으로 서명 로그인해 주세요.
+              </p>
+            ) : null}
             <p className="text-muted-foreground mb-6 max-w-sm text-sm">
               설정 페이지에 접근하려면 먼저 홈페이지에서 로그인해주세요.
             </p>

@@ -3,6 +3,8 @@ import { getApiBaseUrl } from "@/lib/api-url";
 import { clearPrivateKeyRegistered } from "@/lib/private-key-registration";
 
 export const AUTH_TOKEN_STORAGE_KEY = "auth_token";
+/** JWT를 발급받을 때 사용한 지갑 주소(base58). 계정 전환 시 불일치하면 세션 초기화 */
+export const AUTH_TOKEN_BOUND_WALLET_KEY = "auth_token_wallet";
 
 export function notifyAuthTokenChanged() {
   if (typeof window === "undefined") return;
@@ -44,6 +46,7 @@ export function getAuthedAxios(): AxiosInstance {
         const status = err.response?.status;
         if (status === 401 || status === 403) {
           localStorage.removeItem(AUTH_TOKEN_STORAGE_KEY);
+          localStorage.removeItem(AUTH_TOKEN_BOUND_WALLET_KEY);
           clearPrivateKeyRegistered();
           notifyAuthTokenChanged();
           window.location.assign("/");

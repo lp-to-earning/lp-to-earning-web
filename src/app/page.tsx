@@ -101,7 +101,7 @@ export default function Home() {
       );
 
       if (loginData.token) {
-        setAuthToken(loginData.token);
+        setAuthToken(loginData.token, walletAddress);
         await fetchConfig();
         setMessage({
           type: "success",
@@ -131,6 +131,18 @@ export default function Home() {
       setConfigReady(false);
     }
   }, [token]);
+
+  useEffect(() => {
+    function onWalletMismatch() {
+      setMessage({
+        type: "error",
+        text: "연결된 지갑 계정이 바뀌었습니다. 새 계정으로 다시 서명 로그인해 주세요.",
+      });
+    }
+    window.addEventListener("lp-auth-wallet-mismatch", onWalletMismatch);
+    return () =>
+      window.removeEventListener("lp-auth-wallet-mismatch", onWalletMismatch);
+  }, []);
 
   const logout = () => {
     setAuthToken(null);

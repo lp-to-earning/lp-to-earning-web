@@ -22,9 +22,11 @@
   border: 1px solid rgba(189, 157, 255, 0.25);
 }
 
-/* MetaMask — 목록·연결된 트리거 버튼 클릭 비활성화 */
-.wallet-adapter-modal-list > li:has(img[alt="MetaMask icon"]) .wallet-adapter-button,
-.wallet-adapter-dropdown > button.wallet-adapter-button:has(img[alt="MetaMask icon"]) {
+/*
+ * MetaMask — 지갑 선택 모달에서만 비활성화 (팬텀 등으로 전환 유도).
+ * 연결된 상단 버튼은 클릭 가능해야 드롭다운 → "지갑 변경"으로 Phantom 전환이 됨.
+ */
+.wallet-adapter-modal-list > li:has(img[alt="MetaMask icon"]) .wallet-adapter-button {
   pointer-events: none !important;
   cursor: not-allowed !important;
   opacity: 0.5 !important;
