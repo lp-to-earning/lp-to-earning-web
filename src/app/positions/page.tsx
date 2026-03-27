@@ -1,8 +1,9 @@
 "use client";
 
-import { useEffect, useRef, useState, useMemo } from "react";
+import { useMemo } from "react";
 import { useSearchParams, usePathname, useRouter } from "next/navigation";
 import Link from "next/link";
+import { useInfiniteReveal } from "@/hooks/useInfiniteReveal";
 import { usePositions } from "@/hooks/useByrealData";
 import { useStoredAuthToken } from "@/hooks/useStoredAuthToken";
 import { Card, CardContent } from "@/components/Card";
@@ -38,16 +39,12 @@ function PositionsContent() {
   const { data, isLoading, refetch, isRefetching } = usePositions(
     authToken,
     1,
-    500,
+    1,
   );
   const positions = useMemo(
     () => data?.positions ?? [],
     [data?.positions],
   );
-  const pageSize = 12;
-  const [visibleCount, setVisibleCount] = useState(pageSize);
-  const observerRef = useRef<HTMLDivElement | null>(null);
-
   const summary = useMemo(() => {
     const s = data?.summary;
     if (s) {
@@ -126,31 +123,17 @@ function PositionsContent() {
     return list;
   }, [positions, search, sortField, sortType]);
 
-  const visiblePositions = useMemo(() => {
-    return filteredAndSorted.slice(0, visibleCount);
-  }, [filteredAndSorted, visibleCount]);
+  const positionsResetKey = `${search}|${sortField}|${sortType}`;
+  const {
+    visible: visiblePositions,
+    hasMore: hasMorePositions,
+    sentinelRef: positionsSentinelRef,
+  } = useInfiniteReveal(filteredAndSorted, {
+    batchSize: 20,
+    resetKey: positionsResetKey,
+  });
 
-  useEffect(() => {
-    const observer = new IntersectionObserver(
-      (entries) => {
-        if (
-          entries[0].isIntersecting &&
-          visibleCount < filteredAndSorted.length
-        ) {
-          setVisibleCount((c) => c + 12);
-        }
-      },
-      { threshold: 0.1 },
-    );
-
-    if (observerRef.current) {
-      observer.observe(observerRef.current);
-    }
-
-    return () => observer.disconnect();
-  }, [visibleCount, filteredAndSorted.length]);
-
-  const hasNextPage = visibleCount < filteredAndSorted.length;
+  const revealBatchSize = 20;
 
   if (!authToken) {
     return (
@@ -264,7 +247,6 @@ function PositionsContent() {
                 if (!q) params.delete("q");
                 else params.set("q", q);
                 replace(`${pathname}?${params.toString()}`);
-                setVisibleCount(12);
               }}
               className="bg-muted/60 border-border/80 text-foreground placeholder-muted-foreground/60 w-full rounded-xl border py-2 pr-4 pl-9 text-xs font-medium transition-all focus:border-indigo-500 focus:outline-none"
             />
@@ -290,7 +272,7 @@ function PositionsContent() {
                   key={pos.nftMintAddress || idx}
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: (idx % pageSize) * 0.05 }}
+                  transition={{ delay: (idx % revealBatchSize) * 0.05 }}
                 >
                   <Card
                     title={
@@ -361,12 +343,12 @@ function PositionsContent() {
               ))}
             </div>
 
-            {/* Infinite Scroll Trigger */}
+            {/* Infinite scroll trigger (viewport 기준) */}
             <div
-              ref={observerRef}
+              ref={positionsSentinelRef}
               className="mt-6 flex h-10 items-center justify-center"
             >
-              {hasNextPage && (
+              {hasMorePositions && (
                 <RefreshCw className="text-muted-foreground/60 h-5 w-5 animate-spin" />
               )}
             </div>

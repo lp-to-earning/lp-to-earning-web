@@ -1,6 +1,7 @@
 "use client";
 
 import { useConfig, useUpdateConfig } from "@/hooks/useConfig";
+import { useInfiniteReveal } from "@/hooks/useInfiniteReveal";
 import { useTokens } from "@/hooks/useByrealData";
 import { useStoredAuthToken } from "@/hooks/useStoredAuthToken";
 import { useState, useMemo } from "react";
@@ -69,7 +70,12 @@ function TokenSelectionContent() {
   ];
 
   // 데이터 훅 조회
-  const { data: tokens, isLoading: isTokensLoading } = useTokens();
+  const {
+    data: tokens,
+    isLoading: isTokensLoading,
+    isError: isTokensError,
+    error: tokensQueryError,
+  } = useTokens();
   const authToken = useStoredAuthToken();
 
   const { data: configData } = useConfig(authToken, !!authToken);
@@ -111,6 +117,17 @@ function TokenSelectionContent() {
 
     return list;
   }, [tokens, searchQuery, currentSort, currentOrder]);
+
+  const listResetKey = `${searchQuery}|${currentSort}|${currentOrder}`;
+  const {
+    visible: visibleTokens,
+    hasMore: hasMoreTokens,
+    sentinelRef: tokenSentinelRef,
+    scrollRootRef: tokenScrollRootRef,
+  } = useInfiniteReveal(filteredTokens, {
+    batchSize: 20,
+    resetKey: listResetKey,
+  });
 
   const generateSparkline = (id: string) => {
     const seed = id.charCodeAt(0) + (id.charCodeAt(1) || 0);
@@ -206,7 +223,10 @@ function TokenSelectionContent() {
           </div>
         </div>
 
-        <div className="custom-scrollbar mask-image-bottom flex-1 overflow-y-auto px-6 pb-12 sm:px-12">
+        <div
+          ref={tokenScrollRootRef}
+          className="custom-scrollbar mask-image-bottom flex-1 overflow-y-auto px-6 pb-12 sm:px-12"
+        >
           {isTokensLoading ? (
             <div className="text-muted-foreground flex h-full w-full flex-col items-center justify-center gap-2">
               <Loader className="animate-spin" size={32} />
@@ -214,12 +234,26 @@ function TokenSelectionContent() {
                 실시간 토큰 목록 조회 및 불러오는 중...
               </p>
             </div>
+          ) : isTokensError ? (
+            <div className="text-destructive flex min-h-[200px] flex-col items-center justify-center gap-2 px-4 text-center text-sm">
+              <p className="font-medium">토큰 목록을 불러오지 못했습니다.</p>
+              <p className="text-muted-foreground max-w-md text-xs">
+                {tokensQueryError instanceof Error
+                  ? tokensQueryError.message
+                  : String(tokensQueryError)}
+              </p>
+            </div>
+          ) : filteredTokens.length === 0 ? (
+            <div className="text-muted-foreground flex min-h-[200px] flex-col items-center justify-center text-sm">
+              조건에 맞는 토큰이 없습니다.
+            </div>
           ) : (
-            <motion.div
-              layout
-              className="grid grid-cols-1 gap-5 p-2 md:grid-cols-2 lg:grid-cols-3"
-            >
-              {filteredTokens?.map((token) => {
+            <>
+              <motion.div
+                layout
+                className="grid grid-cols-1 gap-5 p-2 md:grid-cols-2 lg:grid-cols-3"
+              >
+                {visibleTokens.map((token) => {
                 const isSelected = selectedTokenMints.includes(token.mint);
                 const spark = generateSparkline(token.mint);
                 const isPositive = (token.price_change_24h || 0) >= 0;
@@ -227,7 +261,6 @@ function TokenSelectionContent() {
                 return (
                   <motion.div
                     key={token.mint}
-                    layoutId={token.mint}
                     whileHover={{ scale: 1.02 }}
                     onClick={() => handleToggleToken(token.mint)}
                     className={`glass ghost-border group relative flex cursor-pointer flex-col justify-between overflow-hidden rounded-3xl p-5 transition-all duration-300 ${
@@ -327,7 +360,16 @@ function TokenSelectionContent() {
                   </motion.div>
                 );
               })}
-            </motion.div>
+              </motion.div>
+              <div
+                ref={tokenSentinelRef}
+                className="flex min-h-14 items-center justify-center py-4"
+              >
+                {hasMoreTokens && (
+                  <Loader className="text-muted-foreground/70 h-6 w-6 animate-spin" />
+                )}
+              </div>
+            </>
           )}
         </div>
         <Toast

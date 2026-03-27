@@ -41,6 +41,7 @@ export const usePositions = (
   });
 };
 
+/** fetchUserPositions는 현재 전체 목록을 한 번에 반환합니다. 중복 페이징이 필요하면 서버 offset API와 맞춰 조정하세요. */
 export const useInfinitePositions = (
   token: string | null,
   pageSize: number = 12,

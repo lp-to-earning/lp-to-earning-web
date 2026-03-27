@@ -70,9 +70,14 @@ function normalizePosition(entry: unknown): Position {
   };
 }
 
+/**
+ * 서버가 한 번에 전체 포지션을 내려주는 경우가 많아, 여기서는 잘라내지 않고
+ * 전부 반환합니다. UI는 `useInfiniteReveal` 등으로 단계적으로 렌더합니다.
+ * (page / pageSize는 기존 훅 시그니처 호환용으로만 유지)
+ */
 export async function fetchUserPositions(
-  page: number,
-  pageSize: number,
+  _page: number,
+  _pageSize: number,
 ): Promise<UserPositionsResult> {
   const { data } = await getAuthedAxios().get<unknown>("positions");
   const root = unwrapPayload(data) ?? (data as Record<string, unknown>) ?? {};
@@ -84,11 +89,8 @@ export async function fetchUserPositions(
       ? (root.summary as PositionsSummary)
       : null;
 
-  const start = (page - 1) * pageSize;
-  const paged = rawList.slice(start, start + pageSize);
-
   return {
-    positions: paged,
+    positions: rawList,
     total: rawList.length,
     summary,
   };

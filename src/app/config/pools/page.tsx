@@ -1,6 +1,7 @@
 "use client";
 
 import { useConfig, useUpdateConfig } from "@/hooks/useConfig";
+import { useInfiniteReveal } from "@/hooks/useInfiniteReveal";
 import { usePools } from "@/hooks/useByrealData";
 import { useStoredAuthToken } from "@/hooks/useStoredAuthToken";
 import { useState, useMemo } from "react";
@@ -69,7 +70,12 @@ function PoolSelectionContent() {
 
   const authToken = useStoredAuthToken();
 
-  const { data: pools, isLoading: isPoolsLoading } = usePools(authToken);
+  const {
+    data: pools,
+    isLoading: isPoolsLoading,
+    isError: isPoolsError,
+    error: poolsQueryError,
+  } = usePools(authToken);
 
   const { data: configData } = useConfig(authToken, !!authToken);
   const serverConfig = configData?.config;
@@ -96,6 +102,17 @@ function PoolSelectionContent() {
 
     return list;
   }, [pools, searchQuery, currentSort, currentOrder]);
+
+  const listResetKey = `${searchQuery}|${currentSort}|${currentOrder}`;
+  const {
+    visible: visiblePools,
+    hasMore: hasMorePools,
+    sentinelRef: poolSentinelRef,
+    scrollRootRef: poolScrollRootRef,
+  } = useInfiniteReveal(filteredPools, {
+    batchSize: 20,
+    resetKey: listResetKey,
+  });
 
   // 스파클라인 시뮬레이션 랜덤 데이터 생성기용 패스 드로잉
   const generateSparkline = (id: string) => {
@@ -259,7 +276,10 @@ function PoolSelectionContent() {
         </div>
 
         {/* 📋 카드 그리드 렌더링 섹션 (이곳만 스크롤) */}
-        <div className="custom-scrollbar mask-image-bottom flex-1 overflow-y-auto px-6 pb-12 sm:px-12">
+        <div
+          ref={poolScrollRootRef}
+          className="custom-scrollbar mask-image-bottom flex-1 overflow-y-auto px-6 pb-12 sm:px-12"
+        >
           {isPoolsLoading ? (
             <div className="text-muted-foreground flex h-full w-full flex-col items-center justify-center gap-2">
               <Loader className="animate-spin" size={32} />
@@ -267,18 +287,31 @@ function PoolSelectionContent() {
                 실시간 풀 목록 조회 및 불러오는 중...
               </p>
             </div>
+          ) : isPoolsError ? (
+            <div className="text-destructive flex min-h-[200px] flex-col items-center justify-center gap-2 px-4 text-center text-sm">
+              <p className="font-medium">풀 목록을 불러오지 못했습니다.</p>
+              <p className="text-muted-foreground max-w-md text-xs">
+                {poolsQueryError instanceof Error
+                  ? poolsQueryError.message
+                  : String(poolsQueryError)}
+              </p>
+            </div>
+          ) : filteredPools.length === 0 ? (
+            <div className="text-muted-foreground flex min-h-[200px] flex-col items-center justify-center text-sm">
+              조건에 맞는 풀이 없습니다.
+            </div>
           ) : (
-            <motion.div
-              layout
-              className="grid grid-cols-1 gap-5 p-2 md:grid-cols-2 lg:grid-cols-3"
-            >
-              {filteredPools?.map((pool) => {
+            <>
+              <motion.div
+                layout
+                className="grid grid-cols-1 gap-5 p-2 md:grid-cols-2 lg:grid-cols-3"
+              >
+                {visiblePools.map((pool) => {
                 const isSelected = selectedPools.includes(pool.id);
                 const spark = generateSparkline(pool.id);
                 return (
                   <motion.div
                     key={pool.id}
-                    layoutId={pool.id}
                     whileHover={{ scale: 1.02 }}
                     onClick={() => handleTogglePool(pool.id)}
                     className={`glass ghost-border !border-opacity-50 hover:bg-muted/10 group relative flex cursor-pointer flex-col justify-between overflow-hidden rounded-3xl p-5 transition-all duration-300 ${
@@ -371,7 +404,16 @@ function PoolSelectionContent() {
                   </motion.div>
                 );
               })}
-            </motion.div>
+              </motion.div>
+              <div
+                ref={poolSentinelRef}
+                className="flex min-h-14 items-center justify-center py-4"
+              >
+                {hasMorePools && (
+                  <Loader className="text-muted-foreground/70 h-6 w-6 animate-spin" />
+                )}
+              </div>
+            </>
           )}
         </div>
         <Toast
