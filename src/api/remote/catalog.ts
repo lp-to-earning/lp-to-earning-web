@@ -1,18 +1,39 @@
 import { createPublicApi } from "@/lib/authed-axios";
 
+/**
+ * 공개 풀·토큰 전체 목록 (`GET /api/pools/all`, `GET /api/tokens/all`).
+ * 인증 없이 호출. 선택 화면에서는 이 목록과 `config.pools` / `config.autoRechargeTokens`를
+ * 풀 주소·민트로 비교해 체크 여부만 나누면 됩니다.
+ */
+
 function unwrapList(data: unknown): unknown[] {
   if (Array.isArray(data)) return data;
   if (data && typeof data === "object") {
     const d = data as Record<string, unknown>;
     if (Array.isArray(d.data)) return d.data;
     if (d.success === true && Array.isArray(d.data)) return d.data;
-    for (const key of ["tokens", "pools", "items", "results", "list"] as const) {
+    for (const key of [
+      "tokens",
+      "pools",
+      "items",
+      "results",
+      "list",
+      "result",
+      "rows",
+    ] as const) {
       const v = d[key];
       if (Array.isArray(v)) return v;
     }
     if (d.data && typeof d.data === "object" && !Array.isArray(d.data)) {
       const inner = d.data as Record<string, unknown>;
-      for (const key of ["tokens", "pools", "items", "data"] as const) {
+      for (const key of [
+        "tokens",
+        "pools",
+        "items",
+        "data",
+        "rows",
+        "list",
+      ] as const) {
         const v = inner[key];
         if (Array.isArray(v)) return v;
       }
@@ -24,12 +45,15 @@ function unwrapList(data: unknown): unknown[] {
 function firstStringField(
   obj: Record<string, unknown>,
   keys: readonly string[],
+  options?: { skipObjects?: boolean },
 ): string {
+  const skipObjects = options?.skipObjects ?? false;
   for (const k of keys) {
     const v = obj[k];
     if (v !== undefined && v !== null) {
+      if (skipObjects && typeof v === "object") continue;
       const s = String(v).trim();
-      if (s !== "") return s;
+      if (s !== "" && s !== "[object Object]") return s;
     }
   }
   return "";
@@ -51,7 +75,6 @@ const POOL_ADDRESS_KEYS = [
   "public_key",
 ] as const;
 
-/** Discovery `GET /api/pools/all` — 가이드 스키마 및 기존 Pool 형태 모두 수용 */
 function normalizePoolEntry(entry: unknown): Pool {
   if (entry && typeof entry === "object" && "token_a" in entry) {
     const pool = entry as Pool;
@@ -90,37 +113,67 @@ function normalizePoolEntry(entry: unknown): Pool {
 
 const TOKEN_MINT_KEYS = [
   "mint",
-  "address",
+  "mintAddress",
+  "mint_address",
   "tokenMint",
   "token_mint",
   "tokenAddress",
   "token_address",
-  "mintAddress",
-  "mint_address",
+  "splMint",
+  "spl_mint",
+  "address",
+  "pubkey",
+  "publicKey",
+  "public_key",
+  "contractAddress",
+  "contract_address",
+  "id",
 ] as const;
 
-/** Discovery `GET /api/tokens/all` — 가이드 스키마 (logo, price 등) */
+function asObjectRecord(v: unknown): Record<string, unknown> | null {
+  if (v && typeof v === "object" && !Array.isArray(v)) {
+    return v as Record<string, unknown>;
+  }
+  return null;
+}
+
 function normalizeTokenEntry(entry: unknown): Token {
-  const p = entry as Record<string, unknown>;
+  const p = asObjectRecord(entry) ?? {};
+  const nested =
+    asObjectRecord(p.token) ??
+    asObjectRecord(p.tokenInfo) ??
+    asObjectRecord(p.asset) ??
+    asObjectRecord(p.meta);
+  const merged: Record<string, unknown> = nested ? { ...nested, ...p } : p;
+
   const logo =
-    p.logo ?? p.logo_uri ?? p.logoUri ?? p.image ?? p.icon;
-  const mint = firstStringField(p, TOKEN_MINT_KEYS);
+    merged.logo ??
+    merged.logo_uri ??
+    merged.logoUri ??
+    merged.image ??
+    merged.icon ??
+    merged.uri;
+
+  const mint = firstStringField(merged, TOKEN_MINT_KEYS, {
+    skipObjects: true,
+  });
+
   return {
     mint,
-    symbol: String(p.symbol ?? ""),
-    name: String(p.name ?? ""),
-    decimals: Number(p.decimals ?? 9),
+    symbol: String(merged.symbol ?? merged.ticker ?? ""),
+    name: String(merged.name ?? merged.title ?? ""),
+    decimals: Number(merged.decimals ?? 9),
     logo_uri: logo !== undefined && logo !== null ? String(logo) : undefined,
-    price_usd: Number(p.price ?? p.price_usd ?? 0),
+    price_usd: Number(merged.price ?? merged.price_usd ?? 0),
     price_change_24h:
-      p.price_change_24h !== undefined
-        ? Number(p.price_change_24h)
+      merged.price_change_24h !== undefined
+        ? Number(merged.price_change_24h)
         : undefined,
     volume_24h_usd:
-      p.volume_24h_usd !== undefined
-        ? Number(p.volume_24h_usd)
-        : p.volume24h !== undefined
-          ? Number(p.volume24h)
+      merged.volume_24h_usd !== undefined
+        ? Number(merged.volume_24h_usd)
+        : merged.volume24h !== undefined
+          ? Number(merged.volume24h)
           : undefined,
   };
 }
@@ -132,24 +185,9 @@ export async function fetchAllPools(): Promise<Pool[]> {
     .filter((pool) => pool.id.length > 0);
 }
 
-const TOKEN_DISCOVERY_PATHS = [
-  "tokens/all",
-  "token/all",
-  "tokens",
-] as const;
-
 export async function fetchAllTokens(): Promise<Token[]> {
-  let lastError: unknown;
-  for (const path of TOKEN_DISCOVERY_PATHS) {
-    try {
-      const { data } = await createPublicApi().get<unknown>(path);
-      const list = unwrapList(data);
-      const normalized = list.map(normalizeTokenEntry).filter((t) => t.mint.length > 0);
-      if (normalized.length > 0) return normalized;
-    } catch (e) {
-      lastError = e;
-    }
-  }
-  if (lastError) throw lastError;
-  return [];
+  const { data } = await createPublicApi().get<unknown>("tokens/all");
+  return unwrapList(data)
+    .map(normalizeTokenEntry)
+    .filter((t) => t.mint.length > 0);
 }

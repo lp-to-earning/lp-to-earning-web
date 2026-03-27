@@ -1,24 +1,24 @@
 import { useQuery, useInfiniteQuery } from "@tanstack/react-query";
-import { fetchAllPools, fetchAllTokens } from "@/api/remote/discovery";
+import { fetchAllPools, fetchAllTokens } from "@/api/remote/catalog";
 import {
   fetchUserPositions,
   type UserPositionsResult,
 } from "@/api/remote/positions";
 
-/** Discovery `GET /api/pools/all` — 인증 불필요. `_token`은 기존 호출부 호환용. */
+/** 공개 `GET /api/pools/all`. 선택 UI는 `config.pools`와 `pool.id`로 비교. */
 export const usePools = (_token: string | null) => {
   return useQuery<Pool[]>({
-    queryKey: ["pools", "discovery", "all"],
+    queryKey: ["pools", "all"],
     queryFn: fetchAllPools,
     staleTime: 5 * 60 * 1000,
     refetchOnWindowFocus: false,
   });
 };
 
-/** Discovery `GET /api/tokens/all` — 인증 불필요 */
+/** 공개 `GET /api/tokens/all`. 선택 UI는 `config.autoRechargeTokens`와 `token.mint`로 비교. */
 export const useTokens = () => {
   return useQuery<Token[]>({
-    queryKey: ["tokens", "discovery", "all"],
+    queryKey: ["tokens", "all"],
     queryFn: fetchAllTokens,
     staleTime: 5 * 60 * 1000,
     refetchOnWindowFocus: false,

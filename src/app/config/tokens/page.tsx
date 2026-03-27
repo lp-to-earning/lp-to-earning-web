@@ -85,33 +85,49 @@ function TokenSelectionContent() {
   const selectedTokenMints =
     tokenSelectionOverride ?? serverConfig?.autoRechargeTokens ?? [];
 
-  const filteredTokens = useMemo(() => {
-    let list =
-      tokens?.filter(
-        (t) =>
-          t.symbol.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          t.name.toLowerCase().includes(searchQuery.toLowerCase()),
-      ) || [];
+  const displayTokens = useMemo(() => {
+    const q = searchQuery.trim();
+    const ql = q.toLowerCase();
+    const base = tokens ?? [];
+    const filtered = !q
+      ? base
+      : base.filter((t) => {
+          if (
+            t.symbol.toLowerCase().includes(ql) ||
+            t.name.toLowerCase().includes(ql)
+          )
+            return true;
+          if (t.mint && t.mint.toLowerCase().includes(ql)) return true;
+          return false;
+        });
 
     const isDesc = currentOrder === "desc";
+    const list = [...filtered];
 
     if (currentSort === "price") {
-      list = [...list].sort((a, b) =>
+      list.sort((a, b) =>
         isDesc
           ? (b.price_usd || 0) - (a.price_usd || 0)
           : (a.price_usd || 0) - (b.price_usd || 0),
       );
     } else if (currentSort === "volume") {
-      list = [...list].sort((a, b) =>
+      list.sort((a, b) =>
         isDesc
           ? (b.volume_24h_usd || 0) - (a.volume_24h_usd || 0)
           : (a.volume_24h_usd || 0) - (b.volume_24h_usd || 0),
       );
     } else if (currentSort === "change") {
-      list = [...list].sort((a, b) =>
+      list.sort((a, b) =>
         isDesc
           ? (b.price_change_24h || 0) - (a.price_change_24h || 0)
           : (a.price_change_24h || 0) - (b.price_change_24h || 0),
+      );
+    } else {
+      list.sort(
+        (a, b) =>
+          a.symbol.localeCompare(b.symbol, undefined, {
+            sensitivity: "base",
+          }) || a.mint.localeCompare(b.mint),
       );
     }
 
@@ -124,7 +140,7 @@ function TokenSelectionContent() {
     hasMore: hasMoreTokens,
     sentinelRef: tokenSentinelRef,
     scrollRootRef: tokenScrollRootRef,
-  } = useInfiniteReveal(filteredTokens, {
+  } = useInfiniteReveal(displayTokens, {
     batchSize: 20,
     resetKey: listResetKey,
   });
@@ -214,7 +230,7 @@ function TokenSelectionContent() {
               />
               <input
                 type="text"
-                placeholder="토큰 검색 (예: USDC, BONK)"
+                placeholder="심볼·이름 또는 민트 주소"
                 value={searchQuery}
                 onChange={(e) => updateUrl("q", e.target.value)}
                 className="bg-muted/30 border-border/30 w-full rounded-2xl border py-2.5 pr-4 pl-10 text-sm transition-all outline-none focus:border-emerald-500/50"
@@ -243,7 +259,7 @@ function TokenSelectionContent() {
                   : String(tokensQueryError)}
               </p>
             </div>
-          ) : filteredTokens.length === 0 ? (
+          ) : displayTokens.length === 0 ? (
             <div className="text-muted-foreground flex min-h-[200px] flex-col items-center justify-center text-sm">
               조건에 맞는 토큰이 없습니다.
             </div>
