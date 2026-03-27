@@ -175,9 +175,9 @@ function PoolSelectionContent() {
   };
 
   return (
-    <main className="text-foreground relative flex h-[100dvh] flex-col items-center overflow-hidden bg-black antialiased">
+    <main className="text-foreground bg-surface-lowest relative flex h-[100dvh] flex-col items-center overflow-hidden antialiased">
       {/* 🔮 뒷배경 글로우 조명 */}
-      <div className="pointer-events-none absolute top-[-20%] left-[-10%] h-[500px] w-[500px] rounded-full bg-indigo-500/10 blur-[120px]" />
+      <div className="pointer-events-none absolute top-[-20%] left-[-10%] h-[500px] w-[500px] rounded-full bg-primary-500/10 blur-[120px]" />
 
       <div className="z-10 flex min-h-0 w-full max-w-6xl flex-1 flex-col">
         {/* 상단 고정 영역 (스크롤 무관) */}
@@ -186,18 +186,18 @@ function PoolSelectionContent() {
           <div className="border-border/10 flex flex-col items-start justify-between gap-6 border-b pb-2 md:flex-row md:items-center">
             <div className="flex items-center gap-5">
               <Link href="/config">
-                <div className="group flex h-12 w-12 cursor-pointer items-center justify-center rounded-2xl border border-white/10 bg-white/5 shadow-lg transition-all hover:bg-white/10">
+                <div className="group border-muted-100/15 bg-muted-100/10 hover:bg-muted-100/15 flex h-12 w-12 cursor-pointer items-center justify-center rounded-2xl border shadow-lg transition-all">
                   <ArrowLeft
                     size={20}
-                    className="text-white/70 transition-colors group-hover:text-white"
+                    className="text-muted-100/70 group-hover:text-muted-100 transition-colors"
                   />
                 </div>
               </Link>
               <div>
-                <h1 className="text-2xl font-extrabold tracking-tight text-white drop-shadow-sm sm:text-3xl">
+                <h1 className="text-muted-100 text-2xl font-extrabold tracking-tight drop-shadow-sm sm:text-3xl">
                   유동성 풀 모니터링
                 </h1>
-                <p className="mt-1 text-sm font-medium text-white/60 sm:text-base">
+                <p className="text-muted-100/65 mt-1 text-sm font-medium sm:text-base">
                   트래킹할 Liquidity Pool을 검색하고 설정해 보세요.
                 </p>
               </div>
@@ -206,7 +206,7 @@ function PoolSelectionContent() {
               type="button"
               disabled={isSavingConfig}
               onClick={handleSave}
-              className="flex w-full cursor-pointer items-center justify-center gap-2 rounded-2xl bg-indigo-600 px-6 py-3.5 text-sm font-bold tracking-wide text-white shadow-[0_0_20px_rgba(79,70,229,0.3)] transition-all hover:bg-indigo-500 hover:shadow-[0_0_30px_rgba(79,70,229,0.5)] active:scale-95 disabled:cursor-not-allowed disabled:opacity-60 md:w-auto"
+              className="flex w-full cursor-pointer items-center justify-center gap-2 rounded-2xl bg-primary-600 px-6 py-3.5 text-sm font-bold tracking-wide text-white shadow-[0_0_20px_color-mix(in_srgb,var(--color-primary-500)_35%,transparent)] transition-all hover:bg-primary-500 hover:shadow-[0_0_30px_color-mix(in_srgb,var(--color-primary-500)_50%,transparent)] active:scale-95 disabled:cursor-not-allowed disabled:opacity-60 md:w-auto"
             >
               {isSavingConfig ? (
                 <Loader className="h-5 w-5 animate-spin" aria-hidden />
@@ -222,7 +222,7 @@ function PoolSelectionContent() {
               animate={{ opacity: 1, y: 0 }}
               className="glass ghost-border flex items-center gap-4 rounded-3xl p-5"
             >
-              <div className="rounded-2xl bg-indigo-500/10 p-3 text-indigo-400">
+              <div className="rounded-2xl bg-primary-500/10 p-3 text-primary-400">
                 <Waves size={24} />
               </div>
               <div>
@@ -245,14 +245,14 @@ function PoolSelectionContent() {
               transition={{ delay: 0.1 }}
               className="glass ghost-border flex items-center gap-4 rounded-3xl p-5"
             >
-              <div className="rounded-2xl bg-emerald-500/10 p-3 text-emerald-400">
+              <div className="rounded-2xl bg-tertiary-500/10 p-3 text-tertiary-400">
                 <TrendingUp size={24} />
               </div>
               <div>
                 <p className="text-muted-foreground text-xs font-medium">
                   목록 중 최대 APR
                 </p>
-                <h4 className="mt-1 font-mono text-xl font-bold text-emerald-400">
+                <h4 className="text-tertiary-400 mt-1 font-mono text-xl font-bold">
                   {summaryFromDisplay.highestApr.toFixed(1)}%
                 </h4>
               </div>
@@ -263,7 +263,7 @@ function PoolSelectionContent() {
               transition={{ delay: 0.2 }}
               className="glass ghost-border flex items-center gap-4 rounded-3xl p-5"
             >
-              <div className="rounded-2xl bg-amber-500/10 p-3 text-amber-400">
+              <div className="rounded-2xl bg-warning-500/10 p-3 text-warning-400">
                 <DollarSign size={24} />
               </div>
               <div>
@@ -284,7 +284,7 @@ function PoolSelectionContent() {
               currentSort={currentSort}
               currentOrder={currentOrder}
               onSortClick={handleSortClick}
-              activeColorClass="bg-indigo-600"
+              activeColorClass="bg-primary-600"
             />
 
             <div className="relative w-full sm:max-w-sm">
@@ -297,7 +297,7 @@ function PoolSelectionContent() {
                 placeholder="페어 또는 풀 주소 검색"
                 value={searchQuery}
                 onChange={(e) => updateUrl("q", e.target.value)}
-                className="bg-muted/30 border-border/30 w-full rounded-2xl border py-2.5 pr-4 pl-10 text-sm transition-all outline-none focus:border-indigo-500/50"
+                className="bg-muted/30 border-border/30 focus:border-primary-500/50 w-full rounded-2xl border py-2.5 pr-4 pl-10 text-sm transition-all outline-none"
               />
             </div>
           </div>
@@ -344,7 +344,7 @@ function PoolSelectionContent() {
                       onClick={() => handleTogglePool(pool.address)}
                       className={`glass ghost-border !border-opacity-50 hover:bg-muted/10 group relative flex cursor-pointer flex-col justify-between overflow-hidden rounded-3xl p-5 transition-all duration-300 ${
                         isSelected
-                          ? "bg-indigo-500/5 shadow-[0_0_50px_rgba(99,102,241,0.05)] ring-2 ring-indigo-500"
+                          ? "bg-primary-500/5 shadow-[0_0_50px_color-mix(in_srgb,var(--color-primary-500)_8%,transparent)] ring-primary-500 ring-2"
                           : ""
                       }`}
                     >
@@ -362,7 +362,7 @@ function PoolSelectionContent() {
                                   unoptimized={true}
                                 />
                               ) : (
-                                <div className="absolute left-0 h-6 w-6 rounded-full bg-slate-700" />
+                                <div className="bg-muted-800 absolute left-0 h-6 w-6 rounded-full" />
                               )}
                               {pool.logoB ? (
                                 <Image
@@ -374,7 +374,7 @@ function PoolSelectionContent() {
                                   unoptimized={true}
                                 />
                               ) : (
-                                <div className="absolute left-3.5 z-10 h-6 w-6 rounded-full bg-slate-400" />
+                                <div className="bg-muted-500 absolute left-3.5 z-10 h-6 w-6 rounded-full" />
                               )}
                             </div>
                             <h3 className="text-foreground font-mono text-sm font-bold">
@@ -384,7 +384,7 @@ function PoolSelectionContent() {
                           {isSelected && (
                             <CheckCircle2
                               size={18}
-                              className="text-indigo-500"
+                              className="text-primary-500"
                             />
                           )}
                         </div>
@@ -411,12 +411,12 @@ function PoolSelectionContent() {
                             width="100%"
                             height="100%"
                             viewBox="0 -5 100 50"
-                            className="drop-shadow-md"
+                            className="text-primary-500 drop-shadow-md"
                           >
                             <path
                               d={spark}
                               fill="none"
-                              stroke="#6366f1"
+                              stroke="currentColor"
                               strokeWidth="3"
                               strokeLinecap="round"
                               strokeLinejoin="round"
@@ -427,7 +427,7 @@ function PoolSelectionContent() {
                           <p className="text-muted-foreground text-[10px] font-semibold tracking-wider uppercase">
                             Est. APR
                           </p>
-                          <p className="text-lg font-extrabold text-emerald-400 drop-shadow-[0_0_8px_rgba(52,211,153,0.3)]">
+                          <p className="text-tertiary-400 drop-shadow-[0_0_8px_color-mix(in_srgb,var(--color-tertiary-400)_35%,transparent)] text-lg font-extrabold">
                             {pool.apr.toFixed(1)}%
                           </p>
                         </div>
@@ -467,7 +467,7 @@ export default function PoolSelectionPage() {
   return (
     <Suspense
       fallback={
-        <div className="flex h-screen items-center justify-center bg-black text-white">
+        <div className="bg-surface-lowest text-muted-100 flex h-screen items-center justify-center">
           <Loader className="animate-spin" size={32} />
         </div>
       }

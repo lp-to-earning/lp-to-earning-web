@@ -55,7 +55,7 @@ export function CardContent({
         </div>
         <div>
           <p className="text-muted-foreground text-xs">{label}</p>
-          <p className="mt-0.5 text-sm font-bold text-white">{value}</p>
+          <p className="text-foreground mt-0.5 text-sm font-bold">{value}</p>
         </div>
       </div>
       {rightElement}

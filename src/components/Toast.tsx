@@ -37,10 +37,10 @@ export default function Toast({
   }, [show, duration, onClose]);
 
   const styles = {
-    success: "bg-emerald-600/90 shadow-[0_10px_40px_rgba(16,185,129,0.3)]",
-    error: "bg-red-600/90 shadow-[0_10px_40px_rgba(239,68,68,0.3)]",
-    info: "bg-indigo-600/90 shadow-[0_10px_40px_rgba(79,70,229,0.3)]",
-    loading: "bg-indigo-600/90 shadow-[0_10px_40px_rgba(79,70,229,0.35)]",
+    success: "bg-tertiary-600/90 shadow-lg shadow-tertiary-600/35",
+    error: "bg-error-600/90 shadow-lg shadow-error-600/35",
+    info: "bg-primary-600/90 shadow-lg shadow-primary-600/35",
+    loading: "bg-primary-600/90 shadow-lg shadow-primary-600/40",
   };
 
   const icons = {

@@ -182,26 +182,26 @@ function TokenSelectionContent() {
   };
 
   return (
-    <main className="text-foreground relative flex h-[100dvh] flex-col items-center overflow-hidden bg-black antialiased">
-      <div className="pointer-events-none absolute top-[-20%] left-[-10%] h-[500px] w-[500px] rounded-full bg-emerald-500/10 blur-[120px]" />
+    <main className="text-foreground bg-surface-lowest relative flex h-[100dvh] flex-col items-center overflow-hidden antialiased">
+      <div className="pointer-events-none absolute top-[-20%] left-[-10%] h-[500px] w-[500px] rounded-full bg-tertiary-500/10 blur-[120px]" />
 
       <div className="z-10 flex min-h-0 w-full max-w-6xl flex-1 flex-col">
         <div className="flex-none space-y-6 px-6 pt-8 pb-4 sm:px-12 sm:pt-12">
           <div className="border-border/10 flex flex-col items-start justify-between gap-6 border-b pb-2 md:flex-row md:items-center">
             <div className="flex items-center gap-5">
               <Link href="/config">
-                <div className="group flex h-12 w-12 cursor-pointer items-center justify-center rounded-2xl border border-white/10 bg-white/5 shadow-lg transition-all hover:bg-white/10">
+                <div className="group border-muted-100/15 bg-muted-100/10 hover:bg-muted-100/15 flex h-12 w-12 cursor-pointer items-center justify-center rounded-2xl border shadow-lg transition-all">
                   <ArrowLeft
                     size={20}
-                    className="text-white/70 transition-colors group-hover:text-white"
+                    className="text-muted-100/70 group-hover:text-muted-100 transition-colors"
                   />
                 </div>
               </Link>
               <div>
-                <h1 className="text-2xl font-extrabold tracking-tight text-white sm:text-3xl">
+                <h1 className="text-muted-100 text-2xl font-extrabold tracking-tight sm:text-3xl">
                   토큰 자동 충전 관리
                 </h1>
-                <p className="mt-1 text-sm font-medium text-white/60 sm:text-base">
+                <p className="text-muted-100/65 mt-1 text-sm font-medium sm:text-base">
                   자동 충전 및 트래킹할 토큰 자산을 검색하고 설정해 보세요.
                 </p>
               </div>
@@ -210,7 +210,7 @@ function TokenSelectionContent() {
               type="button"
               disabled={isSavingConfig}
               onClick={handleSave}
-              className="flex w-full cursor-pointer items-center justify-center gap-2 rounded-2xl bg-emerald-600 px-6 py-3.5 text-sm font-bold tracking-wide text-white shadow-[0_0_20px_rgba(16,185,129,0.3)] transition-all hover:bg-emerald-500 hover:shadow-[0_0_30px_rgba(16,185,129,0.5)] active:scale-95 disabled:cursor-not-allowed disabled:opacity-60 md:w-auto"
+              className="flex w-full cursor-pointer items-center justify-center gap-2 rounded-2xl bg-tertiary-600 px-6 py-3.5 text-sm font-bold tracking-wide text-white shadow-[0_0_20px_color-mix(in_srgb,var(--color-tertiary-500)_35%,transparent)] transition-all hover:bg-tertiary-500 hover:shadow-[0_0_30px_color-mix(in_srgb,var(--color-tertiary-500)_50%,transparent)] active:scale-95 disabled:cursor-not-allowed disabled:opacity-60 md:w-auto"
             >
               {isSavingConfig ? (
                 <Loader className="h-5 w-5 animate-spin" aria-hidden />
@@ -226,7 +226,7 @@ function TokenSelectionContent() {
               currentSort={currentSort}
               currentOrder={currentOrder}
               onSortClick={handleSortClick}
-              activeColorClass="bg-emerald-600"
+              activeColorClass="bg-tertiary-600"
             />
 
             <div className="relative w-full sm:max-w-sm">
@@ -239,7 +239,7 @@ function TokenSelectionContent() {
                 placeholder="심볼·이름 또는 민트 주소"
                 value={searchQuery}
                 onChange={(e) => updateUrl("q", e.target.value)}
-                className="bg-muted/30 border-border/30 w-full rounded-2xl border py-2.5 pr-4 pl-10 text-sm transition-all outline-none focus:border-emerald-500/50"
+                className="bg-muted/30 border-border/30 focus:border-tertiary-500/50 w-full rounded-2xl border py-2.5 pr-4 pl-10 text-sm transition-all outline-none"
               />
             </div>
           </div>
@@ -287,7 +287,7 @@ function TokenSelectionContent() {
                       onClick={() => handleToggleToken(token.mint)}
                       className={`glass ghost-border group relative flex cursor-pointer flex-col justify-between overflow-hidden rounded-3xl p-5 transition-all duration-300 ${
                         isSelected
-                          ? "bg-emerald-500/5 shadow-[0_0_50px_rgba(16,185,129,0.05)] ring-2 ring-emerald-500"
+                          ? "bg-tertiary-500/5 shadow-[0_0_50px_color-mix(in_srgb,var(--color-tertiary-500)_8%,transparent)] ring-tertiary-500 ring-2"
                           : ""
                       }`}
                     >
@@ -304,7 +304,7 @@ function TokenSelectionContent() {
                                 unoptimized={true}
                               />
                             ) : (
-                              <div className="flex h-8 w-8 items-center justify-center rounded-full bg-slate-700 text-xs font-bold">
+                              <div className="bg-muted-800 flex h-8 w-8 items-center justify-center rounded-full text-xs font-bold">
                                 {token.symbol.slice(0, 1)}
                               </div>
                             )}
@@ -320,7 +320,7 @@ function TokenSelectionContent() {
                           {isSelected && (
                             <CheckCircle2
                               size={18}
-                              className="text-emerald-500"
+                              className="text-tertiary-500"
                             />
                           )}
                         </div>
@@ -373,7 +373,7 @@ export default function TokenSelectionPage() {
   return (
     <Suspense
       fallback={
-        <div className="flex h-screen items-center justify-center bg-black text-white">
+        <div className="bg-surface-lowest text-muted-100 flex h-screen items-center justify-center">
           <Loader className="animate-spin" size={32} />
         </div>
       }

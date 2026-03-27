@@ -146,7 +146,7 @@ function PositionsContent() {
           </p>
           <Link
             href="/"
-            className="mt-6 inline-block rounded-xl bg-indigo-600 px-6 py-3 text-sm font-bold text-white hover:bg-indigo-500"
+            className="bg-primary-600 hover:bg-primary-500 mt-6 inline-block rounded-xl px-6 py-3 text-sm font-bold text-white"
           >
             홈으로 이동
           </Link>
@@ -184,7 +184,7 @@ function PositionsContent() {
             <Card
               title={
                 <div className="flex items-center gap-1.5 text-sm">
-                  <Activity className="h-4 w-4 text-indigo-400" /> 포지션 종합
+                  <Activity className="text-primary-400 h-4 w-4" /> 포지션 종합
                   요약
                 </div>
               }
@@ -194,7 +194,7 @@ function PositionsContent() {
                   <span className="text-muted-foreground text-xs">
                     총 예치 유동성
                   </span>
-                  <span className="mt-1 text-xl font-bold text-indigo-400">
+                  <span className="text-primary-400 mt-1 text-xl font-bold">
                     ${summary.totalLiquidity.toFixed(2)}
                   </span>
                 </div>
@@ -202,7 +202,7 @@ function PositionsContent() {
                   <span className="text-muted-foreground text-xs">
                     총 누적 수익
                   </span>
-                  <span className="mt-1 text-xl font-bold text-emerald-400">
+                  <span className="text-tertiary-400 mt-1 text-xl font-bold">
                     ${summary.totalEarned.toFixed(4)}
                   </span>
                 </div>
@@ -213,8 +213,8 @@ function PositionsContent() {
                   <span
                     className={`mt-1 text-xl font-bold ${
                       summary.totalPnL >= 0
-                        ? "text-emerald-400"
-                        : "text-red-400"
+                        ? "text-tertiary-400"
+                        : "text-error-400"
                     }`}
                   >
                     ${summary.totalPnL.toFixed(2)}
@@ -248,7 +248,7 @@ function PositionsContent() {
                 else params.set("q", q);
                 replace(`${pathname}?${params.toString()}`);
               }}
-              className="bg-muted/60 border-border/80 text-foreground placeholder-muted-foreground/60 w-full rounded-xl border py-2 pr-4 pl-9 text-xs font-medium transition-all focus:border-indigo-500 focus:outline-none"
+              className="bg-muted/60 border-border/80 text-foreground placeholder-muted-foreground/60 focus:border-primary-500 w-full rounded-xl border py-2 pr-4 pl-9 text-xs font-medium transition-all focus:outline-none"
             />
           </div>
           <SortButtonGroup
@@ -286,15 +286,15 @@ function PositionsContent() {
                         icon={DollarSign}
                         label="담보 유동성 (Liquidity)"
                         value={`$${parseFloat(pos.liquidityUsd || "0").toFixed(2)}`}
-                        iconBgClass="bg-indigo-500/10"
-                        iconColorClass="text-indigo-400"
+                        iconBgClass="bg-primary-500/10"
+                        iconColorClass="text-primary-400"
                       />
                       <CardContent
                         icon={TrendingUp}
                         label="누적 수익 (Earned)"
                         value={`$${parseFloat(pos.earnedUsd || "0").toFixed(4)}`}
-                        iconBgClass="bg-emerald-500/10"
-                        iconColorClass="text-emerald-400"
+                        iconBgClass="bg-tertiary-500/10"
+                        iconColorClass="text-tertiary-400"
                       />
                       <CardContent
                         icon={LineChart}
@@ -302,13 +302,13 @@ function PositionsContent() {
                         value={`$${parseFloat(pos.pnlUsd || "0").toFixed(2)} (${(parseFloat(pos.pnlUsdPercent || "0") * 100).toFixed(2)}%)`}
                         iconBgClass={
                           parseFloat(pos.pnlUsd || "0") >= 0
-                            ? "bg-emerald-500/10"
-                            : "bg-red-500/10"
+                            ? "bg-tertiary-500/10"
+                            : "bg-error-500/10"
                         }
                         iconColorClass={
                           parseFloat(pos.pnlUsd || "0") >= 0
-                            ? "text-emerald-400"
-                            : "text-red-400"
+                            ? "text-tertiary-400"
+                            : "text-error-400"
                         }
                       />
                       <CardContent
@@ -330,8 +330,8 @@ function PositionsContent() {
                         <span
                           className={`rounded-full px-2 py-0.5 text-[10px] ${
                             pos.status === 0
-                              ? "border border-green-500/30 bg-green-500/10 text-green-400"
-                              : "border border-red-500/30 bg-red-500/10 text-red-400"
+                              ? "border-tertiary-500/30 bg-tertiary-500/10 text-tertiary-400 border"
+                              : "border-error-500/30 bg-error-500/10 text-error-400 border"
                           }`}
                         >
                           {pos.status === 0 ? "Active" : "Closed"}

@@ -19,7 +19,7 @@ export function BotActiveSwitch({
     <div className="border-border/50 bg-muted/30 flex flex-wrap items-center justify-between gap-4 rounded-2xl border p-4">
       <div className="flex items-center gap-3">
         <Power
-          className={`h-5 w-5 shrink-0 ${isActive ? "text-emerald-400" : "text-muted-foreground"}`}
+          className={`h-5 w-5 shrink-0 ${isActive ? "text-tertiary-400" : "text-muted-foreground"}`}
         />
         <div>
           <p className="text-sm font-medium">봇 자동 실행</p>
@@ -36,8 +36,8 @@ export function BotActiveSwitch({
         <span
           className={`rounded-full px-2.5 py-1 text-xs font-semibold ${
             isActive
-              ? "border border-emerald-500/40 bg-emerald-500/15 text-emerald-300"
-              : "border border-zinc-500/40 bg-zinc-500/10 text-zinc-400"
+              ? "border-tertiary-500/40 bg-tertiary-500/15 text-tertiary-300 border"
+              : "border-muted-500/40 bg-muted-600/15 text-muted-400 border"
           }`}
         >
           {isActive ? "Running" : "Stopped"}
@@ -49,12 +49,12 @@ export function BotActiveSwitch({
           aria-busy={loading}
           disabled={disabled || loading}
           onClick={onToggle}
-          className={`relative inline-flex h-8 w-14 shrink-0 cursor-pointer rounded-full transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 disabled:cursor-not-allowed disabled:opacity-40 ${
-            isActive ? "bg-emerald-600" : "bg-zinc-600"
+          className={`focus-visible:ring-primary-500 relative inline-flex h-8 w-14 shrink-0 cursor-pointer rounded-full transition-colors focus:outline-none focus-visible:ring-2 disabled:cursor-not-allowed disabled:opacity-40 ${
+            isActive ? "bg-tertiary-600" : "bg-muted-600"
           }`}
         >
           <span
-            className={`pointer-events-none inline-block h-7 w-7 translate-y-0.5 rounded-full bg-white shadow transition-transform ${
+            className={`bg-muted-100 pointer-events-none inline-block h-7 w-7 translate-y-0.5 rounded-full shadow transition-transform ${
               isActive ? "translate-x-6" : "translate-x-0.5"
             }`}
           />

@@ -1,13 +1,14 @@
 /**
  * wallet-adapter 기본 스타일 바로 다음에 로드되어야 함 (SolanaWalletProvider).
+ * 색상은 globals @theme 토큰과 맞춤.
  */
 .wallet-adapter-dropdown-list {
   z-index: 400 !important;
   backdrop-filter: none !important;
   -webkit-backdrop-filter: none !important;
-  background: #1a1f2e !important;
-  border: 1px solid rgba(189, 157, 255, 0.22);
-  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.55);
+  background: var(--color-surface-high) !important;
+  border: 1px solid color-mix(in srgb, var(--color-primary), transparent 78%);
+  box-shadow: 0 16px 48px color-mix(in srgb, var(--color-surface-lowest), transparent 45%);
 }
 
 .wallet-adapter-dropdown-list-item {
@@ -18,8 +19,8 @@
 .wallet-adapter-modal .wallet-adapter-modal-wrapper {
   backdrop-filter: none !important;
   -webkit-backdrop-filter: none !important;
-  background: #1a1f2e !important;
-  border: 1px solid rgba(189, 157, 255, 0.25);
+  background: var(--color-surface-high) !important;
+  border: 1px solid color-mix(in srgb, var(--color-primary), transparent 75%);
 }
 
 /*

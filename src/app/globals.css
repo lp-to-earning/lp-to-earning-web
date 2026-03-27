@@ -1,6 +1,10 @@
 @import "tailwindcss";
 
 @theme inline {
+  /*
+   * UI 매핑: primary(브랜드·CTA), tertiary(성공·수익), error(실패·손실),
+   * warning(주의), muted(중립·테두리), surface(배경).
+   */
   /* Neon Architect Core Colors */
   /* Primary Scale */
   --color-primary-50: #faf7ff;
@@ -68,6 +72,8 @@
   --color-muted: var(--color-muted-800);
   --color-muted-foreground: var(--color-muted-400);
 
+  --color-destructive: var(--color-error-500);
+
   /* Error Scale */
   --color-error-50: #fff1f2;
   --color-error-100: #ffe4e6;
@@ -80,6 +86,12 @@
   --color-error-800: #9f1239;
   --color-error-900: #881337;
   --color-error-950: #4c0519;
+
+  /* Warning / caution (토스트·배너용 웜 악센트) */
+  --color-warning-300: #fcd34d;
+  --color-warning-400: #fbbf24;
+  --color-warning-500: #f59e0b;
+  --color-warning: var(--color-warning-500);
 
   /* Depth / Surfaces */
   --color-surface-lowest: #000000;
@@ -101,7 +113,7 @@
 
   body {
     background-color: var(--color-surface);
-    color: #f1f5f9; /* muted-100 equivalent */
+    color: var(--color-muted-100);
     font-family: var(--font-sans);
   }
 }

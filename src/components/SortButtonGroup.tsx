@@ -20,7 +20,7 @@ export default function SortButtonGroup({
   currentSort,
   currentOrder,
   onSortClick,
-  activeColorClass = "bg-indigo-600",
+  activeColorClass = "bg-primary-600",
 }: SortButtonGroupProps) {
   return (
     <div className="flex flex-wrap gap-2">
@@ -35,7 +35,7 @@ export default function SortButtonGroup({
             onClick={() => onSortClick(item.value)}
             className={`flex cursor-pointer items-center gap-1 rounded-xl px-4 py-2 text-xs font-bold transition-all ${
               isActive
-                ? `${activeColorClass} text-white shadow-lg shadow-indigo-500/30`
+                ? `${activeColorClass} text-white shadow-lg shadow-black/25`
                 : "bg-muted/30 border-border/30 text-muted-foreground hover:bg-muted/50 border"
             }`}
           >

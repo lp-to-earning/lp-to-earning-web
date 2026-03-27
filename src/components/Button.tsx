@@ -24,10 +24,11 @@ export default function Button({
 
   const variants = {
     primary:
-      "px-4 py-3.5 bg-indigo-600 hover:bg-indigo-700 text-white shadow-lg shadow-indigo-500/10",
-    secondary: "px-6 py-3 bg-white text-muted-foreground hover:bg-muted",
+      "px-4 py-3.5 bg-primary-600 hover:bg-primary-700 text-white shadow-lg shadow-primary-500/10",
+    secondary:
+      "px-6 py-3 bg-muted-100 text-muted-900 hover:bg-muted-200 shadow-sm",
     danger:
-      "px-4 py-2 text-xs text-red-400 hover:bg-red-500/10 border border-red-500/20 shadow-none font-medium",
+      "px-4 py-2 text-xs text-error-400 hover:bg-error-500/10 border border-error-500/20 shadow-none font-medium",
   };
 
   return (

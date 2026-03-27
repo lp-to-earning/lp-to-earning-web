@@ -66,8 +66,8 @@ export default function DashboardPanel({
             icon={Pause}
             label="Dry Run 모드"
             value={config.dryRun ? "ON (가상 거래)" : "OFF (실제 거래)"}
-            iconBgClass="bg-purple-500/10"
-            iconColorClass="text-purple-400"
+            iconBgClass="bg-primary-500/10"
+            iconColorClass="text-primary-400"
           />
         </div>
       </Card>
@@ -114,7 +114,7 @@ export default function DashboardPanel({
                   return (
                     <span
                       key={poolId}
-                      className="rounded-lg border border-indigo-500/30 bg-indigo-500/10 px-2 py-1 font-mono text-xs text-indigo-300"
+                      className="border-primary-500/30 bg-primary-500/10 text-primary-300 rounded-lg border px-2 py-1 font-mono text-xs"
                     >
                       {pool ? pool.name : poolId.slice(0, 8)}
                     </span>
@@ -142,7 +142,7 @@ export default function DashboardPanel({
                   return (
                     <span
                       key={mint}
-                      className="rounded-lg border border-emerald-500/30 bg-emerald-500/10 px-2 py-1 font-mono text-xs text-emerald-300"
+                      className="border-tertiary-500/30 bg-tertiary-500/10 text-tertiary-300 rounded-lg border px-2 py-1 font-mono text-xs"
                     >
                       {token ? token.symbol : mint.slice(0, 8)}
                     </span>

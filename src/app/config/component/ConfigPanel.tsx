@@ -52,7 +52,7 @@ export default function ConfigPanel({
             <div className="flex gap-3">
               <div className="bg-muted flex h-10 w-10 items-center justify-center rounded-xl">
                 <Power
-                  className={`h-5 w-5 ${config.isActive ? "text-emerald-400" : "text-muted-foreground"}`}
+                  className={`h-5 w-5 ${config.isActive ? "text-tertiary-400" : "text-muted-foreground"}`}
                 />
               </div>
               <div>
@@ -69,8 +69,8 @@ export default function ConfigPanel({
             <span
               className={`shrink-0 rounded-full px-2.5 py-1 text-xs font-semibold ${
                 config.isActive
-                  ? "border border-emerald-500/40 bg-emerald-500/15 text-emerald-300"
-                  : "border border-zinc-500/40 bg-zinc-500/10 text-zinc-400"
+                  ? "border-tertiary-500/40 bg-tertiary-500/15 text-tertiary-300 border"
+                  : "border-muted-500/40 bg-muted-600/15 text-muted-400 border"
               }`}
             >
               {config.isActive ? "Running" : "Stopped"}
@@ -85,7 +85,7 @@ export default function ConfigPanel({
               onChange={(e) =>
                 setConfig({ ...config, isActive: e.target.checked })
               }
-              className="bg-muted border-border h-4 w-4 rounded text-indigo-600 focus:ring-indigo-500 disabled:opacity-40"
+              className="bg-muted border-border text-primary-600 focus:ring-primary-500 h-4 w-4 rounded disabled:opacity-40"
             />
             <label
               htmlFor="config-is-active"
@@ -109,7 +109,7 @@ export default function ConfigPanel({
             onChange={(e) =>
               setConfig({ ...config, topN: parseInt(e.target.value) })
             }
-            className="bg-muted/60 border-border/80 text-foreground placeholder-muted-500 w-full rounded-xl border px-4 py-3 font-mono text-sm transition-all focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 focus:outline-none"
+            className="bg-muted/60 border-border/80 text-foreground placeholder-muted-500 focus:border-primary-500 focus:ring-primary-500 w-full rounded-xl border px-4 py-3 font-mono text-sm transition-all focus:ring-1 focus:outline-none"
           />
         </div>
 
@@ -128,7 +128,7 @@ export default function ConfigPanel({
                   copyAmountUsd: parseFloat(e.target.value),
                 })
               }
-              className="bg-muted/60 border-border/80 text-foreground placeholder-muted-500 w-full rounded-xl border px-4 py-3 font-mono text-sm transition-all focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 focus:outline-none"
+              className="bg-muted/60 border-border/80 text-foreground placeholder-muted-500 focus:border-primary-500 focus:ring-primary-500 w-full rounded-xl border px-4 py-3 font-mono text-sm transition-all focus:ring-1 focus:outline-none"
             />
           </div>
           <div>
@@ -145,7 +145,7 @@ export default function ConfigPanel({
                   minAprPercent: parseFloat(e.target.value),
                 })
               }
-              className="bg-muted/60 border-border/80 text-foreground placeholder-muted-500 w-full rounded-xl border px-4 py-3 font-mono text-sm transition-all focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 focus:outline-none"
+              className="bg-muted/60 border-border/80 text-foreground placeholder-muted-500 focus:border-primary-500 focus:ring-primary-500 w-full rounded-xl border px-4 py-3 font-mono text-sm transition-all focus:ring-1 focus:outline-none"
             />
           </div>
         </div>
@@ -164,7 +164,7 @@ export default function ConfigPanel({
                 intervalMs: parseInt(e.target.value) * 60000,
               })
             }
-            className="bg-muted/60 border-border/80 text-foreground placeholder-muted-500 w-full rounded-xl border px-4 py-3 font-mono text-sm transition-all focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 focus:outline-none"
+            className="bg-muted/60 border-border/80 text-foreground placeholder-muted-500 focus:border-primary-500 focus:ring-primary-500 w-full rounded-xl border px-4 py-3 font-mono text-sm transition-all focus:ring-1 focus:outline-none"
           />
           <span className="text-muted-foreground mt-1 block text-xs">
             {config.intervalMs / 60000} 분 마다 전체 봇 검증 진행
@@ -183,7 +183,7 @@ export default function ConfigPanel({
                 return (
                   <div
                     key={poolId}
-                    className="flex items-center gap-1.5 rounded-full border border-indigo-500/30 bg-indigo-500/10 px-3 py-1.5 text-xs text-indigo-400"
+                    className="border-primary-500/30 bg-primary-500/10 text-primary-400 flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs"
                   >
                     <span>{pool ? pool.name : poolId.slice(0, 8)}</span>
                     <button
@@ -194,7 +194,7 @@ export default function ConfigPanel({
                           pools: config.pools.filter((p) => p !== poolId),
                         })
                       }
-                      className="cursor-pointer text-indigo-400 transition-colors hover:text-indigo-300"
+                      className="text-primary-400 hover:text-primary-300 cursor-pointer transition-colors"
                     >
                       <X size={12} />
                     </button>
@@ -210,7 +210,7 @@ export default function ConfigPanel({
           <Link href="/config/pools">
             <button
               type="button"
-              className="mt-1 flex w-full cursor-pointer items-center justify-center gap-2 rounded-xl border border-indigo-500/30 bg-indigo-500/10 px-4 py-3 text-sm font-bold text-indigo-400 shadow-lg shadow-indigo-500/5 transition-all hover:border-indigo-500/50 hover:bg-indigo-500/20 hover:text-indigo-300"
+              className="border-primary-500/30 bg-primary-500/10 text-primary-400 shadow-primary-500/5 hover:border-primary-500/50 hover:bg-primary-500/20 hover:text-primary-300 mt-1 flex w-full cursor-pointer items-center justify-center gap-2 rounded-xl border px-4 py-3 text-sm font-bold shadow-lg transition-all"
             >
               <Layers size={16} /> 설정 대상 풀 목록 조회 및 선택하기
             </button>
@@ -230,7 +230,7 @@ export default function ConfigPanel({
                 return (
                   <div
                     key={mint}
-                    className="flex items-center gap-1.5 rounded-full border border-green-500/30 bg-green-500/10 px-3 py-1.5 text-xs text-green-400"
+                    className="border-tertiary-500/30 bg-tertiary-500/10 text-tertiary-400 flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs"
                   >
                     <span>{token ? token.symbol : mint.slice(0, 8)}</span>
                     <button
@@ -243,7 +243,7 @@ export default function ConfigPanel({
                           ),
                         })
                       }
-                      className="cursor-pointer text-green-400 transition-colors hover:text-green-300"
+                      className="text-tertiary-400 hover:text-tertiary-300 cursor-pointer transition-colors"
                     >
                       <X size={12} />
                     </button>
@@ -259,7 +259,7 @@ export default function ConfigPanel({
           <Link href="/config/tokens">
             <button
               type="button"
-              className="mt-1 flex w-full cursor-pointer items-center justify-center gap-2 rounded-xl border border-emerald-500/30 bg-emerald-500/10 px-4 py-3 text-sm font-bold text-emerald-400 shadow-lg shadow-emerald-500/5 transition-all hover:border-emerald-500/50 hover:bg-emerald-500/20 hover:text-emerald-300"
+              className="border-tertiary-500/30 bg-tertiary-500/10 text-tertiary-400 shadow-tertiary-500/5 hover:border-tertiary-500/50 hover:bg-tertiary-500/20 hover:text-tertiary-300 mt-1 flex w-full cursor-pointer items-center justify-center gap-2 rounded-xl border px-4 py-3 text-sm font-bold shadow-lg transition-all"
             >
               <Layers size={16} /> 설정 대상 토큰 목록 조회 및 선택하기
             </button>
@@ -275,7 +275,7 @@ export default function ConfigPanel({
               onChange={(e) =>
                 setConfig({ ...config, isAutoRebalance: e.target.checked })
               }
-              className="bg-muted border-border h-4 w-4 rounded text-indigo-600 focus:ring-indigo-500"
+              className="bg-muted border-border text-primary-600 focus:ring-primary-500 h-4 w-4 rounded"
             />
             <label
               htmlFor="config-auto-rebalance"
@@ -291,7 +291,7 @@ export default function ConfigPanel({
               onChange={(e) =>
                 setConfig({ ...config, dryRun: e.target.checked })
               }
-              className="bg-muted border-border h-4 w-4 rounded text-indigo-600 focus:ring-indigo-500"
+              className="bg-muted border-border text-primary-600 focus:ring-primary-500 h-4 w-4 rounded"
             />
             <label className="text-foreground text-sm font-medium">
               Dry Run 봇 구동 (실제 지갑 트랜잭션 수수료만 청구, 가상 포지션 수립)

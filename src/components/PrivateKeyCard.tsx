@@ -70,8 +70,8 @@ export function PrivateKeyCard({
         }
         className="p-6"
       >
-        <div className="border-emerald-500/30 bg-emerald-500/5 mb-4 flex gap-3 rounded-xl border p-3">
-          <CheckCircle2 className="mt-0.5 h-5 w-5 shrink-0 text-emerald-400" />
+        <div className="border-tertiary-500/30 bg-tertiary-500/5 mb-4 flex gap-3 rounded-xl border p-3">
+          <CheckCircle2 className="text-tertiary-400 mt-0.5 h-5 w-5 shrink-0" />
           <p className="text-foreground/90 text-sm leading-relaxed">
             서버에 개인키가 <strong className="text-foreground">암호화되어 등록</strong>
             된 상태입니다. 보안을 위해 값은 다시 보이지 않습니다.
@@ -130,8 +130,8 @@ export function PrivateKeyCard({
       }
       className="p-6"
     >
-      <div className="border-amber-500/25 bg-amber-500/5 mb-4 flex gap-3 rounded-xl border p-3">
-        <AlertTriangle className="mt-0.5 h-5 w-5 shrink-0 text-amber-400" />
+      <div className="border-warning-500/25 bg-warning-500/5 mb-4 flex gap-3 rounded-xl border p-3">
+        <AlertTriangle className="text-warning-400 mt-0.5 h-5 w-5 shrink-0" />
         <p className="text-foreground/90 text-sm leading-relaxed">
           개인키는 서버에 암호화되어 안전하게 보관됩니다. 반드시 소액만
           들어있는 <strong className="text-foreground">핫월렛(Hot Wallet)</strong>
@@ -153,14 +153,14 @@ export function PrivateKeyCard({
             value={value}
             onChange={(e) => setValue(e.target.value)}
             disabled={disabled || loading}
-            className="bg-muted/60 border-border/80 text-foreground placeholder:text-muted-foreground/50 w-full rounded-xl border px-4 py-3 font-mono text-sm transition-all focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 focus:outline-none disabled:opacity-50"
+            className="bg-muted/60 border-border/80 text-foreground placeholder:text-muted-foreground/50 focus:border-primary-500 focus:ring-primary-500 w-full rounded-xl border px-4 py-3 font-mono text-sm transition-all focus:ring-1 focus:outline-none disabled:opacity-50"
           />
         </div>
 
         {message && (
           <p
             className={
-              message.ok ? "text-sm text-emerald-400" : "text-sm text-red-400"
+              message.ok ? "text-tertiary-400 text-sm" : "text-error-400 text-sm"
             }
           >
             {message.text}

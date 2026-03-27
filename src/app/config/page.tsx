@@ -99,7 +99,7 @@ export default function ConfigPage() {
           <div className="bg-muted/55 border-border flex flex-col items-center justify-center rounded-3xl border p-12 text-center">
             <h2 className="mb-2 text-xl font-bold">권한 없음</h2>
             {showWalletSwitchHint && connected ? (
-              <p className="text-amber-300/90 mb-4 max-w-sm text-sm">
+              <p className="text-warning-300/90 mb-4 max-w-sm text-sm">
                 지갑 계정이 바뀌어 로그인 세션이 초기화되었습니다. 홈에서 새
                 계정으로 서명 로그인해 주세요.
               </p>
@@ -109,7 +109,7 @@ export default function ConfigPage() {
             </p>
             <Link
               href="/"
-              className="rounded-xl bg-indigo-600 px-6 py-3 font-bold text-white shadow-lg shadow-indigo-500/10 transition-all hover:bg-indigo-700"
+              className="bg-primary-600 hover:bg-primary-700 shadow-primary-500/10 rounded-xl px-6 py-3 font-bold text-white shadow-lg transition-all"
             >
               홈으로 돌아가기
             </Link>
@@ -132,8 +132,8 @@ export default function ConfigPage() {
               exit={{ opacity: 0 }}
               className={`mb-6 flex items-center gap-3 rounded-xl border p-4 ${
                 message.type === "success"
-                  ? "border-green-500/30 bg-green-500/10 text-green-300"
-                  : "border-red-500/30 bg-red-500/10 text-red-300"
+                  ? "border-tertiary-500/30 bg-tertiary-500/10 text-tertiary-300"
+                  : "border-error-500/30 bg-error-500/10 text-error-300"
               }`}
             >
               {message.type === "success" ? (

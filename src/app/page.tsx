@@ -186,8 +186,8 @@ export default function Home() {
               exit={{ opacity: 0 }}
               className={`mb-6 flex items-center gap-3 rounded-xl border p-4 ${
                 message.type === "success"
-                  ? "border-green-500/30 bg-green-500/10 text-green-300"
-                  : "border-red-500/30 bg-red-500/10 text-red-300"
+                  ? "border-tertiary-500/30 bg-tertiary-500/10 text-tertiary-300"
+                  : "border-error-500/30 bg-error-500/10 text-error-300"
               }`}
             >
               {message.type === "success" ? (
