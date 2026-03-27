@@ -79,6 +79,7 @@ function PoolSelectionContent() {
   const { data: configData } = useConfig(authToken, !!authToken);
   const serverConfig = configData?.config;
   const updateConfigMutation = useUpdateConfig();
+  const isSavingConfig = updateConfigMutation.isPending;
 
   const selectedPools = poolSelectionOverride ?? serverConfig?.pools ?? [];
 
@@ -157,7 +158,7 @@ function PoolSelectionContent() {
   };
 
   const handleSave = () => {
-    if (!authToken || !serverConfig) return;
+    if (!authToken || !serverConfig || isSavingConfig) return;
 
     updateConfigMutation.mutate(
       {
@@ -202,10 +203,15 @@ function PoolSelectionContent() {
               </div>
             </div>
             <button
+              type="button"
+              disabled={isSavingConfig}
               onClick={handleSave}
-              className="w-full cursor-pointer rounded-2xl bg-indigo-600 px-6 py-3.5 text-sm font-bold tracking-wide text-white shadow-[0_0_20px_rgba(79,70,229,0.3)] transition-all hover:bg-indigo-500 hover:shadow-[0_0_30px_rgba(79,70,229,0.5)] active:scale-95 md:w-auto"
+              className="flex w-full cursor-pointer items-center justify-center gap-2 rounded-2xl bg-indigo-600 px-6 py-3.5 text-sm font-bold tracking-wide text-white shadow-[0_0_20px_rgba(79,70,229,0.3)] transition-all hover:bg-indigo-500 hover:shadow-[0_0_30px_rgba(79,70,229,0.5)] active:scale-95 disabled:cursor-not-allowed disabled:opacity-60 md:w-auto"
             >
-              선택 항목 적용 및 저장
+              {isSavingConfig ? (
+                <Loader className="h-5 w-5 animate-spin" aria-hidden />
+              ) : null}
+              {isSavingConfig ? "저장 중..." : "선택 항목 적용 및 저장"}
             </button>
           </div>
 
@@ -441,6 +447,12 @@ function PoolSelectionContent() {
             </>
           )}
         </div>
+        <Toast
+          show={isSavingConfig}
+          message="설정을 저장하는 중..."
+          type="loading"
+          onClose={() => {}}
+        />
         <Toast
           show={showSavedToast}
           message="풀 설정이 성공적으로 저장되었습니다!"

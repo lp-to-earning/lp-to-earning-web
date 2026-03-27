@@ -81,6 +81,7 @@ function TokenSelectionContent() {
   const { data: configData } = useConfig(authToken, !!authToken);
   const serverConfig = configData?.config;
   const updateConfigMutation = useUpdateConfig();
+  const isSavingConfig = updateConfigMutation.isPending;
 
   const selectedTokenMints =
     tokenSelectionOverride ?? serverConfig?.autoRechargeTokens ?? [];
@@ -164,7 +165,7 @@ function TokenSelectionContent() {
   };
 
   const handleSave = () => {
-    if (!authToken || !serverConfig) return;
+    if (!authToken || !serverConfig || isSavingConfig) return;
 
     updateConfigMutation.mutate(
       {
@@ -206,10 +207,15 @@ function TokenSelectionContent() {
               </div>
             </div>
             <button
+              type="button"
+              disabled={isSavingConfig}
               onClick={handleSave}
-              className="w-full cursor-pointer rounded-2xl bg-emerald-600 px-6 py-3.5 text-sm font-bold tracking-wide text-white shadow-[0_0_20px_rgba(16,185,129,0.3)] transition-all hover:bg-emerald-500 hover:shadow-[0_0_30px_rgba(16,185,129,0.5)] active:scale-95 md:w-auto"
+              className="flex w-full cursor-pointer items-center justify-center gap-2 rounded-2xl bg-emerald-600 px-6 py-3.5 text-sm font-bold tracking-wide text-white shadow-[0_0_20px_rgba(16,185,129,0.3)] transition-all hover:bg-emerald-500 hover:shadow-[0_0_30px_rgba(16,185,129,0.5)] active:scale-95 disabled:cursor-not-allowed disabled:opacity-60 md:w-auto"
             >
-              선택 항목 적용 및 저장
+              {isSavingConfig ? (
+                <Loader className="h-5 w-5 animate-spin" aria-hidden />
+              ) : null}
+              {isSavingConfig ? "저장 중..." : "선택 항목 적용 및 저장"}
             </button>
           </div>
 
@@ -346,6 +352,12 @@ function TokenSelectionContent() {
             </>
           )}
         </div>
+        <Toast
+          show={isSavingConfig}
+          message="설정을 저장하는 중..."
+          type="loading"
+          onClose={() => {}}
+        />
         <Toast
           show={showSavedToast}
           message="토큰 설정이 성공적으로 저장되었습니다!"

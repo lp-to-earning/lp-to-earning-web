@@ -1,13 +1,14 @@
 "use client";
 
 import { motion, AnimatePresence } from "framer-motion";
-import { CheckCircle2, AlertCircle, Info } from "lucide-react";
+import { CheckCircle2, AlertCircle, Info, Loader2 } from "lucide-react";
 import { useEffect } from "react";
 
 interface ToastProps {
   show: boolean;
   message: string;
-  type?: "success" | "error" | "info";
+  type?: "success" | "error" | "info" | "loading";
+  /** 0이면 자동으로 닫지 않음(저장 중 등) */
   duration?: number;
   onClose: () => void;
 }
@@ -16,9 +17,16 @@ export default function Toast({
   show,
   message,
   type = "success",
-  duration = 2000,
+  duration: durationProp,
   onClose,
 }: ToastProps) {
+  const duration =
+    durationProp !== undefined
+      ? durationProp
+      : type === "loading"
+        ? 0
+        : 2000;
+
   useEffect(() => {
     if (show && duration > 0) {
       const timer = setTimeout(() => {
@@ -32,12 +40,14 @@ export default function Toast({
     success: "bg-emerald-600/90 shadow-[0_10px_40px_rgba(16,185,129,0.3)]",
     error: "bg-red-600/90 shadow-[0_10px_40px_rgba(239,68,68,0.3)]",
     info: "bg-indigo-600/90 shadow-[0_10px_40px_rgba(79,70,229,0.3)]",
+    loading: "bg-indigo-600/90 shadow-[0_10px_40px_rgba(79,70,229,0.35)]",
   };
 
   const icons = {
     success: <CheckCircle2 size={18} />,
     error: <AlertCircle size={18} />,
     info: <Info size={18} />,
+    loading: <Loader2 className="animate-spin" size={18} aria-hidden />,
   };
 
   return (

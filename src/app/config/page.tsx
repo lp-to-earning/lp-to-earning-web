@@ -14,6 +14,7 @@ import { consumeWalletMismatchHint } from "@/components/WalletSessionSync";
 import ConfigPanel from "@/app/config/component/ConfigPanel";
 import { PrivateKeyCard } from "@/components/PrivateKeyCard";
 import Link from "next/link";
+import Toast from "@/components/Toast";
 
 export default function ConfigPage() {
   const { connected } = useWallet();
@@ -168,6 +169,13 @@ export default function ConfigPage() {
             />
           </motion.div>
         </div>
+
+        <Toast
+          show={updateConfigMutation.isPending}
+          message="설정을 저장하는 중..."
+          type="loading"
+          onClose={() => {}}
+        />
       </div>
     </main>
   );
