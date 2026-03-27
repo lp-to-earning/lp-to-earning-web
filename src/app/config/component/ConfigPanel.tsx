@@ -179,13 +179,13 @@ export default function ConfigPanel({
           <div className="mb-3 flex flex-wrap gap-2">
             {Array.isArray(config.pools) && config.pools.length > 0 ? (
               config.pools.map((poolId) => {
-                const pool = pools?.find((p) => p.id === poolId);
+                const pool = pools?.find((p) => p.address === poolId);
                 return (
                   <div
                     key={poolId}
                     className="flex items-center gap-1.5 rounded-full border border-indigo-500/30 bg-indigo-500/10 px-3 py-1.5 text-xs text-indigo-400"
                   >
-                    <span>{pool ? pool.pair : poolId.slice(0, 8)}</span>
+                    <span>{pool ? pool.name : poolId.slice(0, 8)}</span>
                     <button
                       type="button"
                       onClick={() =>
@@ -266,16 +266,37 @@ export default function ConfigPanel({
           </Link>
         </div>
 
-        <div className="border-border/80 mt-4 flex items-center gap-2 border-t pt-2">
-          <input
-            type="checkbox"
-            checked={config.dryRun}
-            onChange={(e) => setConfig({ ...config, dryRun: e.target.checked })}
-            className="bg-muted border-border h-4 w-4 rounded text-indigo-600 focus:ring-indigo-500"
-          />
-          <label className="text-foreground text-sm font-medium">
-            Dry Run 봇 구동 (실제 지갑 트랜잭션 수수료만 청구, 가상 포지션 수립)
-          </label>
+        <div className="border-border/80 mt-4 flex flex-col gap-3 border-t pt-4">
+          <div className="flex items-center gap-2">
+            <input
+              type="checkbox"
+              id="config-auto-rebalance"
+              checked={config.isAutoRebalance}
+              onChange={(e) =>
+                setConfig({ ...config, isAutoRebalance: e.target.checked })
+              }
+              className="bg-muted border-border h-4 w-4 rounded text-indigo-600 focus:ring-indigo-500"
+            />
+            <label
+              htmlFor="config-auto-rebalance"
+              className="text-foreground text-sm font-medium"
+            >
+              자동 리밸런스 (isAutoRebalance)
+            </label>
+          </div>
+          <div className="flex items-center gap-2">
+            <input
+              type="checkbox"
+              checked={config.dryRun}
+              onChange={(e) =>
+                setConfig({ ...config, dryRun: e.target.checked })
+              }
+              className="bg-muted border-border h-4 w-4 rounded text-indigo-600 focus:ring-indigo-500"
+            />
+            <label className="text-foreground text-sm font-medium">
+              Dry Run 봇 구동 (실제 지갑 트랜잭션 수수료만 청구, 가상 포지션 수립)
+            </label>
+          </div>
         </div>
 
         <Button

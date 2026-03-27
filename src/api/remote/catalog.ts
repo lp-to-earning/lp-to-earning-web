@@ -2,8 +2,8 @@ import { createPublicApi } from "@/lib/authed-axios";
 
 /**
  * 공개 풀·토큰 전체 목록 (`GET /api/pools/all`, `GET /api/tokens/all`).
- * 인증 없이 호출. 선택 화면에서는 이 목록과 `config.pools` / `config.autoRechargeTokens`를
- * 풀 주소·민트로 비교해 체크 여부만 나누면 됩니다.
+ * API v2 풀 행: `address`, `name`, `symbolA`/`symbolB`, `logoA`/`logoB`, `tvl`, `volume24h`, …
+ * `GET /api/pools`(인증) 응답도 동일 스키마에 가깝게 `normalizePoolEntry`로 맞춤.
  */
 
 function unwrapList(data: unknown): unknown[] {
@@ -59,14 +59,12 @@ function firstStringField(
   return "";
 }
 
-function emptyToken(): Token {
-  return { mint: "", symbol: "", name: "", decimals: 9, price_usd: 0 };
-}
-
 const POOL_ADDRESS_KEYS = [
   "address",
   "poolAddress",
   "pool_address",
+  "poolPubkey",
+  "pool_pubkey",
   "poolId",
   "pool_id",
   "id",
@@ -75,40 +73,93 @@ const POOL_ADDRESS_KEYS = [
   "public_key",
 ] as const;
 
-function normalizePoolEntry(entry: unknown): Pool {
-  if (entry && typeof entry === "object" && "token_a" in entry) {
-    const pool = entry as Pool;
-    const p = entry as Record<string, unknown>;
-    const id =
-      (pool.id && String(pool.id).trim()) ||
-      firstStringField(p, POOL_ADDRESS_KEYS);
-    return { ...pool, id };
-  }
+function isRichPoolRecord(entry: object): boolean {
+  if (!("token_a" in entry)) return false;
+  const ta = (entry as Record<string, unknown>).token_a;
+  return ta !== null && typeof ta === "object";
+}
 
-  const p = entry as Record<string, unknown>;
-  const id = firstStringField(p, POOL_ADDRESS_KEYS);
+function asObjectRecord(v: unknown): Record<string, unknown> | null {
+  if (v && typeof v === "object" && !Array.isArray(v)) {
+    return v as Record<string, unknown>;
+  }
+  return null;
+}
+
+/**
+ * `address` 가 없을 때만 UI·키용 placeholder (`name#index`).
+ * `POST /config` 의 `pools` 는 가능한 한 실제 풀 주소를 넣는 것이 안전함.
+ */
+function ensurePoolAddress(
+  parsed: string,
+  p: Record<string, unknown>,
+  index: number,
+): string {
+  const t = parsed.trim();
+  if (t) return t;
+  const label = String(p.name ?? p.pair ?? p.pair_symbol ?? "").trim();
+  if (label) return `${label}#${index}`;
+  return `pool#${index}`;
+}
+
+/** API `Pool` 한 행과 동일한 평면 스키마로 정규화 */
+function normalizeDiscoveryPoolRow(
+  p: Record<string, unknown>,
+  index: number,
+): Pool {
+  const fromAddress = String(p.address ?? "").trim();
+  const rawAddr = fromAddress || firstStringField(p, POOL_ADDRESS_KEYS);
+  const address = ensurePoolAddress(rawAddr, p, index);
+
+  const name =
+    String(p.name ?? p.pair ?? p.pair_symbol ?? "").trim() ||
+    (address.length > 8
+      ? `${address.slice(0, 4)}…${address.slice(-4)}`
+      : address || "Pool");
 
   return {
-    id,
-    pair: String(
-      p.name ??
-        p.pair ??
-        p.pair_symbol ??
-        (id ? `${id.slice(0, 4)}…${id.slice(-4)}` : "Pool"),
-    ),
-    token_a: emptyToken(),
-    token_b: emptyToken(),
-    tvl_usd: Number(p.tvl ?? p.tvlUsd ?? p.tvl_usd ?? 0),
-    volume_24h_usd: Number(
-      p.volume24h ?? p.volume_24h_usd ?? p.volume24hUsd ?? 0,
-    ),
-    volume_7d_usd: Number(p.volume_7d_usd ?? 0),
-    fee_rate_bps: Number(p.fee_rate_bps ?? 0),
-    fee_24h_usd: Number(p.fee_24h_usd ?? 0),
+    name,
+    address,
+    symbolA: String(p.symbolA ?? p.tokenSymbolA ?? p.symbol_a ?? "").trim(),
+    symbolB: String(p.symbolB ?? p.tokenSymbolB ?? p.symbol_b ?? "").trim(),
+    logoA: String(p.logoA ?? p.logo_a ?? "").trim(),
+    logoB: String(p.logoB ?? p.logo_b ?? "").trim(),
+    price: Number(p.price ?? p.current_price ?? 0),
     apr: Number(p.apr ?? 0),
-    current_price: Number(p.current_price ?? p.price ?? 0),
-    created_at: String(p.created_at ?? ""),
+    tvl: Number(p.tvl ?? p.tvlUsd ?? p.tvl_usd ?? 0),
+    volume24h: Number(
+      p.volume24h ?? p.volume_24h_usd ?? p.volume24hUsd ?? p.volume24H ?? 0,
+    ),
   };
+}
+
+/** 구형 `token_a` / `token_b` 중첩 응답 → 평면 필드로 합침 */
+function richPoolRecordToPlain(p: Record<string, unknown>): Record<string, unknown> {
+  const ta = asObjectRecord(p.token_a) ?? {};
+  const tb = asObjectRecord(p.token_b) ?? {};
+  return {
+    ...p,
+    name: p.pair ?? p.name,
+    address: p.id ?? p.address,
+    symbolA: ta.symbol ?? p.symbolA,
+    symbolB: tb.symbol ?? p.symbolB,
+    logoA: ta.logo_uri ?? ta.logoUri ?? p.logoA,
+    logoB: tb.logo_uri ?? tb.logoUri ?? p.logoB,
+    tvl: p.tvl_usd ?? p.tvl,
+    volume24h: p.volume_24h_usd ?? p.volume24h,
+    price: p.current_price ?? p.price,
+    apr: p.apr,
+  };
+}
+
+export function normalizePoolEntry(entry: unknown, index: number): Pool {
+  if (entry && typeof entry === "object" && isRichPoolRecord(entry)) {
+    return normalizeDiscoveryPoolRow(
+      richPoolRecordToPlain(entry as Record<string, unknown>),
+      index,
+    );
+  }
+  return normalizeDiscoveryPoolRow(entry as Record<string, unknown>, index);
 }
 
 const TOKEN_MINT_KEYS = [
@@ -129,13 +180,6 @@ const TOKEN_MINT_KEYS = [
   "contract_address",
   "id",
 ] as const;
-
-function asObjectRecord(v: unknown): Record<string, unknown> | null {
-  if (v && typeof v === "object" && !Array.isArray(v)) {
-    return v as Record<string, unknown>;
-  }
-  return null;
-}
 
 function normalizeTokenEntry(entry: unknown): Token {
   const p = asObjectRecord(entry) ?? {};
@@ -180,9 +224,9 @@ function normalizeTokenEntry(entry: unknown): Token {
 
 export async function fetchAllPools(): Promise<Pool[]> {
   const { data } = await createPublicApi().get<unknown>("pools/all");
-  return unwrapList(data)
-    .map(normalizePoolEntry)
-    .filter((pool) => pool.id.length > 0);
+  return unwrapList(data).map((entry, index) =>
+    normalizePoolEntry(entry, index),
+  );
 }
 
 export async function fetchAllTokens(): Promise<Token[]> {

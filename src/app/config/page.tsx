@@ -47,6 +47,7 @@ export default function ConfigPage() {
     intervalMs: 1800000,
     dryRun: true,
     isActive: false,
+    isAutoRebalance: false,
     pools: [],
     autoRechargeTokens: [],
     ...(serverConfigPart || {}),

@@ -241,7 +241,7 @@ function TokenSelectionContent() {
 
         <div
           ref={tokenScrollRootRef}
-          className="custom-scrollbar mask-image-bottom flex-1 overflow-y-auto px-6 pb-12 sm:px-12"
+          className="custom-scrollbar mask-image-bottom min-h-0 flex-1 overflow-y-auto px-6 pb-12 sm:px-12"
         >
           {isTokensLoading ? (
             <div className="text-muted-foreground flex h-full w-full flex-col items-center justify-center gap-2">
@@ -270,112 +270,112 @@ function TokenSelectionContent() {
                 className="grid grid-cols-1 gap-5 p-2 md:grid-cols-2 lg:grid-cols-3"
               >
                 {visibleTokens.map((token) => {
-                const isSelected = selectedTokenMints.includes(token.mint);
-                const spark = generateSparkline(token.mint);
-                const isPositive = (token.price_change_24h || 0) >= 0;
+                  const isSelected = selectedTokenMints.includes(token.mint);
+                  const spark = generateSparkline(token.mint);
+                  const isPositive = (token.price_change_24h || 0) >= 0;
 
-                return (
-                  <motion.div
-                    key={token.mint}
-                    whileHover={{ scale: 1.02 }}
-                    onClick={() => handleToggleToken(token.mint)}
-                    className={`glass ghost-border group relative flex cursor-pointer flex-col justify-between overflow-hidden rounded-3xl p-5 transition-all duration-300 ${
-                      isSelected
-                        ? "bg-emerald-500/5 shadow-[0_0_50px_rgba(16,185,129,0.05)] ring-2 ring-emerald-500"
-                        : ""
-                    }`}
-                  >
-                    <div>
-                      <div className="mb-4 flex items-start justify-between">
-                        <div className="flex items-center gap-3">
-                          {token.logo_uri ? (
-                            <Image
-                              src={token.logo_uri}
-                              className="border-border h-8 w-8 rounded-full border"
-                              alt=""
-                              width={32}
-                              height={32}
-                              unoptimized={true}
-                            />
-                          ) : (
-                            <div className="flex h-8 w-8 items-center justify-center rounded-full bg-slate-700 text-xs font-bold">
-                              {token.symbol.slice(0, 1)}
+                  return (
+                    <motion.div
+                      key={token.mint}
+                      whileHover={{ scale: 1.02 }}
+                      onClick={() => handleToggleToken(token.mint)}
+                      className={`glass ghost-border group relative flex cursor-pointer flex-col justify-between overflow-hidden rounded-3xl p-5 transition-all duration-300 ${
+                        isSelected
+                          ? "bg-emerald-500/5 shadow-[0_0_50px_rgba(16,185,129,0.05)] ring-2 ring-emerald-500"
+                          : ""
+                      }`}
+                    >
+                      <div>
+                        <div className="mb-4 flex items-start justify-between">
+                          <div className="flex items-center gap-3">
+                            {token.logo_uri ? (
+                              <Image
+                                src={token.logo_uri}
+                                className="border-border h-8 w-8 rounded-full border"
+                                alt=""
+                                width={32}
+                                height={32}
+                                unoptimized={true}
+                              />
+                            ) : (
+                              <div className="flex h-8 w-8 items-center justify-center rounded-full bg-slate-700 text-xs font-bold">
+                                {token.symbol.slice(0, 1)}
+                              </div>
+                            )}
+                            <div>
+                              <h3 className="text-foreground text-sm font-bold">
+                                {token.symbol}
+                              </h3>
+                              <p className="text-muted-foreground max-w-[120px] truncate font-mono text-[10px]">
+                                {token.name}
+                              </p>
                             </div>
+                          </div>
+                          {isSelected && (
+                            <CheckCircle2
+                              size={18}
+                              className="text-emerald-500"
+                            />
                           )}
+                        </div>
+
+                        <div className="grid grid-cols-2 gap-2 text-xs">
                           <div>
-                            <h3 className="text-foreground text-sm font-bold">
-                              {token.symbol}
-                            </h3>
-                            <p className="text-muted-foreground max-w-[120px] truncate font-mono text-[10px]">
-                              {token.name}
+                            <p className="text-muted-foreground">Price</p>
+                            <p className="text-foreground mt-0.5 font-bold">
+                              $
+                              {token.price_usd?.toFixed(
+                                token.price_usd < 1 ? 5 : 2,
+                              )}
+                            </p>
+                          </div>
+                          <div>
+                            <p className="text-muted-foreground">Volume 24h</p>
+                            <p className="text-foreground mt-0.5 font-bold">
+                              $
+                              {token.volume_24h_usd
+                                ? Math.round(
+                                    token.volume_24h_usd,
+                                  ).toLocaleString()
+                                : "N/A"}
                             </p>
                           </div>
                         </div>
-                        {isSelected && (
-                          <CheckCircle2
-                            size={18}
-                            className="text-emerald-500"
-                          />
-                        )}
                       </div>
 
-                      <div className="grid grid-cols-2 gap-2 text-xs">
-                        <div>
-                          <p className="text-muted-foreground">Price</p>
-                          <p className="text-foreground mt-0.5 font-bold">
-                            $
-                            {token.price_usd?.toFixed(
-                              token.price_usd < 1 ? 5 : 2,
-                            )}
+                      <div className="border-border/20 mt-4 flex items-center justify-between border-t pt-4">
+                        <div className="h-[40px] max-w-[120px] flex-1 opacity-70 transition-all duration-300 group-hover:scale-[1.05] group-hover:opacity-100">
+                          <svg
+                            width="100%"
+                            height="100%"
+                            viewBox="0 -5 100 50"
+                            className="drop-shadow-md"
+                          >
+                            <path
+                              d={spark}
+                              fill="none"
+                              stroke={isPositive ? "#10b981" : "#ef4444"}
+                              strokeWidth="3"
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                            />
+                          </svg>
+                        </div>
+                        <div className="text-right">
+                          <p className="text-muted-foreground text-[10px] font-semibold tracking-wider uppercase">
+                            24h Chg
+                          </p>
+                          <p
+                            className={`text-lg font-bold ${isPositive ? "text-emerald-400" : "text-red-400"}`}
+                          >
+                            {isPositive ? "+" : ""}
+                            {(token.price_change_24h || 0).toFixed(2)}%
                           </p>
                         </div>
-                        <div>
-                          <p className="text-muted-foreground">Volume 24h</p>
-                          <p className="text-foreground mt-0.5 font-bold">
-                            $
-                            {token.volume_24h_usd
-                              ? Math.round(
-                                  token.volume_24h_usd,
-                                ).toLocaleString()
-                              : "N/A"}
-                          </p>
-                        </div>
                       </div>
-                    </div>
-
-                    <div className="border-border/20 mt-4 flex items-center justify-between border-t pt-4">
-                      <div className="h-[40px] max-w-[120px] flex-1 opacity-70 transition-all duration-300 group-hover:scale-[1.05] group-hover:opacity-100">
-                        <svg
-                          width="100%"
-                          height="100%"
-                          viewBox="0 -5 100 50"
-                          className="drop-shadow-md"
-                        >
-                          <path
-                            d={spark}
-                            fill="none"
-                            stroke={isPositive ? "#10b981" : "#ef4444"}
-                            strokeWidth="3"
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                          />
-                        </svg>
-                      </div>
-                      <div className="text-right">
-                        <p className="text-muted-foreground text-[10px] font-semibold tracking-wider uppercase">
-                          24h Chg
-                        </p>
-                        <p
-                          className={`text-lg font-bold ${isPositive ? "text-emerald-400" : "text-red-400"}`}
-                        >
-                          {isPositive ? "+" : ""}
-                          {(token.price_change_24h || 0).toFixed(2)}%
-                        </p>
-                      </div>
-                    </div>
-                  </motion.div>
-                );
-              })}
+                    </motion.div>
+                  );
+                })}
               </motion.div>
               <div
                 ref={tokenSentinelRef}

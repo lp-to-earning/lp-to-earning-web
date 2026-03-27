@@ -41,6 +41,7 @@ export default function Home() {
     intervalMs: 1800000,
     dryRun: true,
     isActive: false,
+    isAutoRebalance: false,
     pools: [],
     autoRechargeTokens: [],
   });

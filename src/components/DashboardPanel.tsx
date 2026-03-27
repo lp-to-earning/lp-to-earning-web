@@ -110,13 +110,13 @@ export default function DashboardPanel({
             <div className="mt-1 flex flex-wrap gap-1.5">
               {config.pools && config.pools.length > 0 ? (
                 config.pools.map((poolId) => {
-                  const pool = pools?.find((p) => p.id === poolId);
+                  const pool = pools?.find((p) => p.address === poolId);
                   return (
                     <span
                       key={poolId}
                       className="rounded-lg border border-indigo-500/30 bg-indigo-500/10 px-2 py-1 font-mono text-xs text-indigo-300"
                     >
-                      {pool ? pool.pair : poolId.slice(0, 8)}
+                      {pool ? pool.name : poolId.slice(0, 8)}
                     </span>
                   );
                 })

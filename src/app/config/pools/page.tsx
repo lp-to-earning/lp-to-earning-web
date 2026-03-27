@@ -76,7 +76,7 @@ function PoolSelectionContent() {
     isError: isPoolsError,
     error: poolsQueryError,
   } = usePools(authToken);
-
+  console.log("pools", pools);
   const { data: configData } = useConfig(authToken, !!authToken);
   const serverConfig = configData?.config;
   const updateConfigMutation = useUpdateConfig();
@@ -92,9 +92,12 @@ function PoolSelectionContent() {
     const filtered = !q
       ? base
       : base.filter((pool) => {
-          const pair = pool.pair.toLowerCase();
-          const id = pool.id.toLowerCase();
-          return pair.includes(q) || id.includes(q);
+          const label = String(pool.name ?? "").toLowerCase();
+          const addr = String(pool.address ?? "").toLowerCase();
+          const sym = `${pool.symbolA}/${pool.symbolB}`.toLowerCase();
+          return (
+            label.includes(q) || addr.includes(q) || sym.includes(q)
+          );
         });
 
     const isDesc = currentOrder === "desc";
@@ -103,14 +106,12 @@ function PoolSelectionContent() {
     if (currentSort === "apr") {
       list.sort((a, b) => (isDesc ? b.apr - a.apr : a.apr - b.apr));
     } else if (currentSort === "tvl") {
-      list.sort((a, b) =>
-        isDesc ? b.tvl_usd - a.tvl_usd : a.tvl_usd - b.tvl_usd,
-      );
+      list.sort((a, b) => (isDesc ? b.tvl - a.tvl : a.tvl - b.tvl));
     } else {
       list.sort(
         (a, b) =>
-          a.pair.localeCompare(b.pair, undefined, { sensitivity: "base" }) ||
-          a.id.localeCompare(b.id),
+          a.name.localeCompare(b.name, undefined, { sensitivity: "base" }) ||
+          a.address.localeCompare(b.address),
       );
     }
 
@@ -123,10 +124,7 @@ function PoolSelectionContent() {
     }
     return {
       highestApr: displayPools.reduce((m, p) => Math.max(m, p.apr), 0),
-      totalVolume: displayPools.reduce(
-        (s, p) => s + (p.volume_24h_usd || 0),
-        0,
-      ),
+      totalVolume: displayPools.reduce((s, p) => s + (p.volume24h || 0), 0),
     };
   }, [displayPools]);
 
@@ -144,7 +142,7 @@ function PoolSelectionContent() {
   // 스파클라인 시뮬레이션 랜덤 데이터 생성기용 패스 드로잉
   const generateSparkline = (id: string) => {
     // ID 시드를 통해 항상 동일한 랜덤 노이즈 값 생성
-    const seed = id.charCodeAt(0) + (id.charCodeAt(1) || 0);
+    const seed = id.charCodeAt(0) + (id.charCodeAt(1) ?? 0);
     const points = [];
     for (let i = 0; i < 10; i++) {
       points.push(5 + Math.abs(Math.sin(seed + i) * 30));
@@ -305,7 +303,7 @@ function PoolSelectionContent() {
         {/* 📋 카드 그리드 렌더링 섹션 (이곳만 스크롤) */}
         <div
           ref={poolScrollRootRef}
-          className="custom-scrollbar mask-image-bottom flex-1 overflow-y-auto px-6 pb-12 sm:px-12"
+          className="custom-scrollbar mask-image-bottom min-h-0 flex-1 overflow-y-auto px-6 pb-12 sm:px-12"
         >
           {isPoolsLoading ? (
             <div className="text-muted-foreground flex h-full w-full flex-col items-center justify-center gap-2">
@@ -334,13 +332,13 @@ function PoolSelectionContent() {
                 className="grid grid-cols-1 gap-5 p-2 md:grid-cols-2 lg:grid-cols-3"
               >
                 {visiblePools.map((pool) => {
-                  const isSelected = selectedPools.includes(pool.id);
-                  const spark = generateSparkline(pool.id);
+                  const isSelected = selectedPools.includes(pool.address);
+                  const spark = generateSparkline(pool.address);
                   return (
                     <motion.div
-                      key={pool.id}
+                      key={pool.address}
                       whileHover={{ scale: 1.02 }}
-                      onClick={() => handleTogglePool(pool.id)}
+                      onClick={() => handleTogglePool(pool.address)}
                       className={`glass ghost-border !border-opacity-50 hover:bg-muted/10 group relative flex cursor-pointer flex-col justify-between overflow-hidden rounded-3xl p-5 transition-all duration-300 ${
                         isSelected
                           ? "bg-indigo-500/5 shadow-[0_0_50px_rgba(99,102,241,0.05)] ring-2 ring-indigo-500"
@@ -351,9 +349,9 @@ function PoolSelectionContent() {
                         <div className="mb-4 flex items-start justify-between">
                           <div className="flex items-center gap-2">
                             <div className="relative flex h-8 w-8 items-center">
-                              {pool.token_a.logo_uri ? (
+                              {pool.logoA ? (
                                 <Image
-                                  src={pool.token_a.logo_uri}
+                                  src={pool.logoA}
                                   className="absolute left-0 h-6 w-6 rounded-full border border-black"
                                   alt=""
                                   width={24}
@@ -363,9 +361,9 @@ function PoolSelectionContent() {
                               ) : (
                                 <div className="absolute left-0 h-6 w-6 rounded-full bg-slate-700" />
                               )}
-                              {pool.token_b.logo_uri ? (
+                              {pool.logoB ? (
                                 <Image
-                                  src={pool.token_b.logo_uri}
+                                  src={pool.logoB}
                                   className="absolute left-3.5 z-10 h-6 w-6 rounded-full border border-black"
                                   alt=""
                                   width={24}
@@ -377,7 +375,7 @@ function PoolSelectionContent() {
                               )}
                             </div>
                             <h3 className="text-foreground font-mono text-sm font-bold">
-                              {pool.pair}
+                              {pool.name}
                             </h3>
                           </div>
                           {isSelected && (
@@ -392,14 +390,13 @@ function PoolSelectionContent() {
                           <div>
                             <p className="text-muted-foreground">TVL</p>
                             <p className="text-foreground mt-0.5 font-bold">
-                              ${Math.round(pool.tvl_usd).toLocaleString()}
+                              ${Math.round(pool.tvl).toLocaleString()}
                             </p>
                           </div>
                           <div>
                             <p className="text-muted-foreground">Volume 24h</p>
                             <p className="text-foreground mt-0.5 font-bold">
-                              $
-                              {Math.round(pool.volume_24h_usd).toLocaleString()}
+                              ${Math.round(pool.volume24h).toLocaleString()}
                             </p>
                           </div>
                         </div>
