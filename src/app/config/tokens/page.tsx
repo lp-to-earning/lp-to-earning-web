@@ -2,7 +2,8 @@
 
 import { useConfig, useUpdateConfig } from "@/hooks/useConfig";
 import { useInfiniteReveal } from "@/hooks/useInfiniteReveal";
-import { useTokens } from "@/hooks/useByrealData";
+import { usePools, useTokens } from "@/hooks/useByrealData";
+import { mintsFromTrackedPools } from "@/lib/pool-token-sync";
 import { useStoredAuthToken } from "@/hooks/useStoredAuthToken";
 import { useState, useMemo } from "react";
 import { motion } from "framer-motion";
@@ -14,6 +15,7 @@ import {
   TrendingUp,
   DollarSign,
   Percent,
+  RefreshCw,
 } from "lucide-react";
 import Link from "next/link";
 import Toast from "@/components/Toast";
@@ -36,6 +38,8 @@ function TokenSelectionContent() {
     string[] | null
   >(null);
   const [showSavedToast, setShowSavedToast] = useState(false);
+  const [showSyncToast, setShowSyncToast] = useState(false);
+  const [syncToastMessage, setSyncToastMessage] = useState("");
 
   const handleSortClick = (sortValue: string) => {
     const params = new URLSearchParams(searchParams.toString());
@@ -77,6 +81,19 @@ function TokenSelectionContent() {
     error: tokensQueryError,
   } = useTokens();
   const authToken = useStoredAuthToken();
+  const {
+    data: pools,
+    isLoading: isPoolsLoading,
+    isError: isPoolsError,
+    hasNextPage: poolsHasNextPage,
+    isFetchingNextPage: isPoolsFetchingNextPage,
+  } = usePools(authToken);
+
+  const poolsCatalogReady =
+    !isPoolsError &&
+    !isPoolsLoading &&
+    !isPoolsFetchingNextPage &&
+    !poolsHasNextPage;
 
   const { data: configData } = useConfig(authToken, !!authToken);
   const serverConfig = configData?.config;
@@ -164,6 +181,54 @@ function TokenSelectionContent() {
     });
   };
 
+  const handleSyncFromPools = () => {
+    if (!serverConfig || !tokens?.length || !poolsCatalogReady) {
+      setSyncToastMessage(
+        "풀·토큰 목록을 모두 불러온 뒤 다시 시도해 주세요.",
+      );
+      setShowSyncToast(true);
+      return;
+    }
+
+    const poolAddrs = serverConfig.pools ?? [];
+    if (poolAddrs.length === 0) {
+      setSyncToastMessage(
+        "추적 중인 풀이 없습니다. 설정 → 풀에서 먼저 선택해 주세요.",
+      );
+      setShowSyncToast(true);
+      return;
+    }
+
+    const { mints, skippedSymbols } = mintsFromTrackedPools(
+      poolAddrs,
+      pools,
+      tokens,
+    );
+
+    const base = tokenSelectionOverride ?? serverConfig.autoRechargeTokens ?? [];
+    const merged = [...new Set([...base, ...mints])];
+    setTokenSelectionOverride(merged);
+
+    const newlyAdded = mints.filter((m) => !base.includes(m)).length;
+    let msg =
+      newlyAdded > 0
+        ? `풀 페어에서 ${newlyAdded}개 토큰을 자동 리충전 목록에 추가했습니다.`
+        : "추가할 새 토큰이 없습니다. (이미 선택됨 또는 USDC만 페어)";
+    if (skippedSymbols.length > 0) {
+      msg += ` 카탈로그에 없는 심볼: ${skippedSymbols.join(", ")}`;
+    }
+    setSyncToastMessage(msg);
+    setShowSyncToast(true);
+  };
+
+  const syncFromPoolsDisabled =
+    !serverConfig ||
+    isSavingConfig ||
+    isTokensLoading ||
+    isPoolsError ||
+    !poolsCatalogReady ||
+    !tokens?.length;
+
   const handleSave = () => {
     if (!authToken || !serverConfig || isSavingConfig) return;
 
@@ -206,17 +271,29 @@ function TokenSelectionContent() {
                 </p>
               </div>
             </div>
-            <button
-              type="button"
-              disabled={isSavingConfig}
-              onClick={handleSave}
-              className="flex w-full cursor-pointer items-center justify-center gap-2 rounded-2xl bg-tertiary-600 px-6 py-3.5 text-sm font-bold tracking-wide text-white shadow-[0_0_20px_color-mix(in_srgb,var(--color-tertiary-500)_35%,transparent)] transition-all hover:bg-tertiary-500 hover:shadow-[0_0_30px_color-mix(in_srgb,var(--color-tertiary-500)_50%,transparent)] active:scale-95 disabled:cursor-not-allowed disabled:opacity-60 md:w-auto"
-            >
-              {isSavingConfig ? (
-                <Loader className="h-5 w-5 animate-spin" aria-hidden />
-              ) : null}
-              {isSavingConfig ? "저장 중..." : "선택 항목 적용 및 저장"}
-            </button>
+            <div className="flex w-full flex-col gap-2 sm:flex-row sm:items-center sm:justify-end">
+              <button
+                type="button"
+                disabled={syncFromPoolsDisabled}
+                onClick={handleSyncFromPools}
+                title="설정에 저장된 추적 풀의 페어 토큰을 USDC 제외하고 목록에 합칩니다"
+                className="border-tertiary-500/40 bg-tertiary-500/10 text-tertiary-300 hover:bg-tertiary-500/20 flex w-full cursor-pointer items-center justify-center gap-2 rounded-2xl border px-5 py-3 text-sm font-bold transition-all disabled:cursor-not-allowed disabled:opacity-50 sm:w-auto"
+              >
+                <RefreshCw className="h-4 w-4 shrink-0" aria-hidden />
+                풀에서 동기화
+              </button>
+              <button
+                type="button"
+                disabled={isSavingConfig}
+                onClick={handleSave}
+                className="flex w-full cursor-pointer items-center justify-center gap-2 rounded-2xl bg-tertiary-600 px-6 py-3.5 text-sm font-bold tracking-wide text-white shadow-[0_0_20px_color-mix(in_srgb,var(--color-tertiary-500)_35%,transparent)] transition-all hover:bg-tertiary-500 hover:shadow-[0_0_30px_color-mix(in_srgb,var(--color-tertiary-500)_50%,transparent)] active:scale-95 disabled:cursor-not-allowed disabled:opacity-60 sm:w-auto"
+              >
+                {isSavingConfig ? (
+                  <Loader className="h-5 w-5 animate-spin" aria-hidden />
+                ) : null}
+                {isSavingConfig ? "저장 중..." : "선택 항목 적용 및 저장"}
+              </button>
+            </div>
           </div>
 
           {/* 🕵️ 검색 바 및 정렬 */}
@@ -278,7 +355,6 @@ function TokenSelectionContent() {
                 {visibleTokens.map((token) => {
                   const isSelected = selectedTokenMints.includes(token.mint);
                   const spark = generateSparkline(token.mint);
-                  const isPositive = (token.price_change_24h || 0) >= 0;
 
                   return (
                     <motion.div
@@ -357,6 +433,13 @@ function TokenSelectionContent() {
           message="설정을 저장하는 중..."
           type="loading"
           onClose={() => {}}
+        />
+        <Toast
+          show={showSyncToast}
+          message={syncToastMessage}
+          type="info"
+          duration={4500}
+          onClose={() => setShowSyncToast(false)}
         />
         <Toast
           show={showSavedToast}
