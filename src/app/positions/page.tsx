@@ -5,7 +5,9 @@ import { useSearchParams, usePathname, useRouter } from "next/navigation";
 import Link from "next/link";
 import { useInfiniteReveal } from "@/hooks/useInfiniteReveal";
 import { usePositions } from "@/hooks/useByrealData";
+import { useConfig } from "@/hooks/useConfig";
 import { useStoredAuthToken } from "@/hooks/useStoredAuthToken";
+import { PrivateKeyRequiredModal } from "@/components/PrivateKeyRequiredModal";
 import { Card, CardContent } from "@/components/Card";
 import SortButtonGroup from "@/components/SortButtonGroup";
 import {
@@ -31,6 +33,15 @@ function PositionsContent() {
   const { replace } = useRouter();
 
   const authToken = useStoredAuthToken();
+  const {
+    data: configLoad,
+    isPending: isConfigPending,
+    isError: isConfigError,
+    isSuccess: isConfigSuccess,
+    error: configQueryError,
+  } = useConfig(authToken, !!authToken);
+  const privateKeyOk =
+    isConfigSuccess && configLoad?.hasPrivateKey === true;
 
   const search = searchParams.get("q") || "";
   const sortField = searchParams.get("sort") || "default";
@@ -40,6 +51,7 @@ function PositionsContent() {
     authToken,
     1,
     1,
+    { enabled: privateKeyOk },
   );
   const positions = useMemo(
     () => data?.positions ?? [],
@@ -151,6 +163,46 @@ function PositionsContent() {
             홈으로 이동
           </Link>
         </div>
+      </main>
+    );
+  }
+
+  if (isConfigPending) {
+    return (
+      <main className="flex min-h-screen flex-col items-center justify-center p-6 sm:p-12">
+        <Loader className="text-primary-400 h-10 w-10 animate-spin" />
+        <p className="text-muted-foreground mt-4 text-sm">설정을 불러오는 중…</p>
+      </main>
+    );
+  }
+
+  if (isConfigError) {
+    return (
+      <main className="flex min-h-screen flex-col items-center justify-center gap-3 p-6 sm:p-12">
+        <p className="text-destructive text-center text-sm font-medium">
+          설정을 불러오지 못했습니다.
+        </p>
+        <p className="text-muted-foreground max-w-md text-center text-xs">
+          {configQueryError instanceof Error
+            ? configQueryError.message
+            : String(configQueryError)}
+        </p>
+        <Link
+          href="/config"
+          className="text-primary-400 text-sm font-semibold underline-offset-2 hover:underline"
+        >
+          설정으로
+        </Link>
+      </main>
+    );
+  }
+
+  if (configLoad && !configLoad.hasPrivateKey) {
+    return (
+      <main className="relative min-h-screen">
+        <PrivateKeyRequiredModal
+          description="내 포지션 조회는 봇 지갑 개인키가 등록된 뒤에 이용할 수 있습니다. 설정 페이지에서 개인키를 등록해 주세요."
+        />
       </main>
     );
   }

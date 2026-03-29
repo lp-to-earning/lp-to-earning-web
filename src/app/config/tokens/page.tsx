@@ -22,6 +22,7 @@ import Toast from "@/components/Toast";
 import { useSearchParams, usePathname, useRouter } from "next/navigation";
 import Image from "next/image";
 import SortButtonGroup from "@/components/SortButtonGroup";
+import { PrivateKeyRequiredModal } from "@/components/PrivateKeyRequiredModal";
 
 import { Suspense } from "react";
 
@@ -73,29 +74,37 @@ function TokenSelectionContent() {
     { value: "change", label: "변동률", icon: Percent },
   ];
 
-  // 데이터 훅 조회
+  const authToken = useStoredAuthToken();
+  const {
+    data: configData,
+    isPending: isConfigPending,
+    isError: isConfigError,
+    isSuccess: isConfigSuccess,
+    error: configQueryError,
+  } = useConfig(authToken, !!authToken);
+  const privateKeyOk =
+    isConfigSuccess && configData?.hasPrivateKey === true;
+
   const {
     data: tokens,
     isLoading: isTokensLoading,
     isError: isTokensError,
     error: tokensQueryError,
-  } = useTokens();
-  const authToken = useStoredAuthToken();
+  } = useTokens({ enabled: privateKeyOk });
   const {
     data: pools,
     isLoading: isPoolsLoading,
     isError: isPoolsError,
     hasNextPage: poolsHasNextPage,
     isFetchingNextPage: isPoolsFetchingNextPage,
-  } = usePools(authToken);
+  } = usePools(authToken, { enabled: privateKeyOk });
 
   const poolsCatalogReady =
+    privateKeyOk &&
     !isPoolsError &&
     !isPoolsLoading &&
     !isPoolsFetchingNextPage &&
     !poolsHasNextPage;
-
-  const { data: configData } = useConfig(authToken, !!authToken);
   const serverConfig = configData?.config;
   const updateConfigMutation = useUpdateConfig();
   const isSavingConfig = updateConfigMutation.isPending;
@@ -244,6 +253,60 @@ function TokenSelectionContent() {
       },
     );
   };
+
+  if (!authToken) {
+    return (
+      <main className="bg-surface-lowest text-muted-100 flex min-h-[100dvh] flex-col items-center justify-center gap-4 p-8 antialiased">
+        <p className="text-muted-foreground text-center text-sm">
+          로그인이 필요합니다.
+        </p>
+        <Link
+          href="/"
+          className="text-tertiary-400 text-sm font-semibold underline-offset-2 hover:underline"
+        >
+          홈으로 이동
+        </Link>
+      </main>
+    );
+  }
+
+  if (isConfigPending) {
+    return (
+      <main className="bg-surface-lowest flex min-h-[100dvh] flex-col items-center justify-center antialiased">
+        <Loader className="text-tertiary-400 h-10 w-10 animate-spin" />
+        <p className="text-muted-foreground mt-4 text-sm">설정을 불러오는 중…</p>
+      </main>
+    );
+  }
+
+  if (isConfigError) {
+    return (
+      <main className="bg-surface-lowest flex min-h-[100dvh] flex-col items-center justify-center gap-3 p-8 antialiased">
+        <p className="text-destructive text-center text-sm font-medium">
+          설정을 불러오지 못했습니다.
+        </p>
+        <p className="text-muted-foreground max-w-md text-center text-xs">
+          {configQueryError instanceof Error
+            ? configQueryError.message
+            : String(configQueryError)}
+        </p>
+        <Link
+          href="/config"
+          className="text-tertiary-400 text-sm font-semibold underline-offset-2 hover:underline"
+        >
+          설정으로
+        </Link>
+      </main>
+    );
+  }
+
+  if (configData && !configData.hasPrivateKey) {
+    return (
+      <main className="bg-surface-lowest relative min-h-[100dvh] antialiased">
+        <PrivateKeyRequiredModal />
+      </main>
+    );
+  }
 
   return (
     <main className="text-foreground bg-surface-lowest relative flex h-[100dvh] flex-col items-center overflow-hidden antialiased">

@@ -61,7 +61,12 @@ async function sliceTokensPage(
  * 네트워크는 `catalog/full` 캐시로 1회, 이후 페이지는 클라이언트 슬라이스.
  * `data`는 로드된 페이지를 합친 `Pool[]` (남은 페이지는 마운트 시 자동 fetch).
  */
-export const usePools = (_token: string | null, pageSize: number = 60) => {
+export const usePools = (
+  _token: string | null,
+  options?: { pageSize?: number; enabled?: boolean },
+) => {
+  const pageSize = options?.pageSize ?? 60;
+  const catalogEnabled = options?.enabled ?? true;
   const queryClient = useQueryClient();
   const q = useInfiniteQuery({
     queryKey: ["pools", "infinite", pageSize],
@@ -75,6 +80,7 @@ export const usePools = (_token: string | null, pageSize: number = 60) => {
     },
     staleTime: 5 * 60 * 1000,
     refetchOnWindowFocus: false,
+    enabled: catalogEnabled,
   });
 
   const data = useMemo(
@@ -85,8 +91,9 @@ export const usePools = (_token: string | null, pageSize: number = 60) => {
   const { fetchNextPage, hasNextPage, isFetchingNextPage } = q;
 
   useEffect(() => {
+    if (!catalogEnabled) return;
     if (hasNextPage && !isFetchingNextPage) void fetchNextPage();
-  }, [hasNextPage, isFetchingNextPage, fetchNextPage]);
+  }, [catalogEnabled, hasNextPage, isFetchingNextPage, fetchNextPage]);
 
   return {
     data,
@@ -102,7 +109,9 @@ export const usePools = (_token: string | null, pageSize: number = 60) => {
 };
 
 /** 공개 `GET /api/tokens/all` — pools와 동일 infinite + flatten */
-export const useTokens = (pageSize: number = 60) => {
+export const useTokens = (options?: { pageSize?: number; enabled?: boolean }) => {
+  const pageSize = options?.pageSize ?? 60;
+  const catalogEnabled = options?.enabled ?? true;
   const queryClient = useQueryClient();
   const q = useInfiniteQuery({
     queryKey: ["tokens", "infinite", pageSize],
@@ -116,6 +125,7 @@ export const useTokens = (pageSize: number = 60) => {
     },
     staleTime: 5 * 60 * 1000,
     refetchOnWindowFocus: false,
+    enabled: catalogEnabled,
   });
 
   const data = useMemo(
@@ -126,8 +136,9 @@ export const useTokens = (pageSize: number = 60) => {
   const { fetchNextPage, hasNextPage, isFetchingNextPage } = q;
 
   useEffect(() => {
+    if (!catalogEnabled) return;
     if (hasNextPage && !isFetchingNextPage) void fetchNextPage();
-  }, [hasNextPage, isFetchingNextPage, fetchNextPage]);
+  }, [catalogEnabled, hasNextPage, isFetchingNextPage, fetchNextPage]);
 
   return {
     data,
@@ -146,11 +157,13 @@ export const usePositions = (
   token: string | null,
   page: number = 1,
   pageSize: number = 20,
+  options?: { enabled?: boolean },
 ) => {
+  const queryEnabled = options?.enabled ?? true;
   return useQuery<UserPositionsResult>({
     queryKey: ["positions", token, page, pageSize],
     queryFn: () => fetchUserPositions(page, pageSize),
-    enabled: !!token,
+    enabled: !!token && queryEnabled,
     staleTime: 5 * 60 * 1000,
     refetchOnWindowFocus: false,
   });

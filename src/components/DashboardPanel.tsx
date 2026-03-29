@@ -40,18 +40,30 @@ export default function DashboardPanel({
 }) {
   const { data: pools } = usePools(token);
   const { data: tokens } = useTokens();
+  const positionsNavBase =
+    "text-muted-foreground flex items-center gap-1 text-sm font-medium transition-all duration-200";
   return (
     <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
       {/* 봇 가동 현황 */}
       <Card
         title="봇 가동 현황"
         rightElement={
-          <Link
-            href="/positions"
-            className="text-muted-foreground hover:text-foreground flex cursor-pointer items-center gap-1 text-sm font-medium transition-all duration-200"
-          >
-            내 포지션 <ChevronRight className="h-4 w-4" />
-          </Link>
+          hasPrivateKeyRegistered ? (
+            <Link
+              href="/positions"
+              className={`${positionsNavBase} hover:text-foreground cursor-pointer`}
+            >
+              내 포지션 <ChevronRight className="h-4 w-4 shrink-0" />
+            </Link>
+          ) : (
+            <span
+              className={`${positionsNavBase} text-muted-foreground/50 cursor-not-allowed`}
+              title="설정에서 봇 개인키를 등록한 뒤 이용할 수 있습니다."
+              aria-disabled="true"
+            >
+              내 포지션 <ChevronRight className="h-4 w-4 shrink-0" />
+            </span>
+          )
         }
       >
         <div className="space-y-4">
