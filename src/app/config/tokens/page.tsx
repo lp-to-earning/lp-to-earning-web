@@ -183,9 +183,7 @@ function TokenSelectionContent() {
 
   const handleSyncFromPools = () => {
     if (!serverConfig || !tokens?.length || !poolsCatalogReady) {
-      setSyncToastMessage(
-        "풀·토큰 목록을 모두 불러온 뒤 다시 시도해 주세요.",
-      );
+      setSyncToastMessage("풀·토큰 목록을 모두 불러온 뒤 다시 시도해 주세요.");
       setShowSyncToast(true);
       return;
     }
@@ -205,7 +203,8 @@ function TokenSelectionContent() {
       tokens,
     );
 
-    const base = tokenSelectionOverride ?? serverConfig.autoRechargeTokens ?? [];
+    const base =
+      tokenSelectionOverride ?? serverConfig.autoRechargeTokens ?? [];
     const merged = [...new Set([...base, ...mints])];
     setTokenSelectionOverride(merged);
 
@@ -248,7 +247,7 @@ function TokenSelectionContent() {
 
   return (
     <main className="text-foreground bg-surface-lowest relative flex h-[100dvh] flex-col items-center overflow-hidden antialiased">
-      <div className="pointer-events-none absolute top-[-20%] left-[-10%] h-[500px] w-[500px] rounded-full bg-tertiary-500/10 blur-[120px]" />
+      <div className="bg-tertiary-500/10 pointer-events-none absolute top-[-20%] left-[-10%] h-[500px] w-[500px] rounded-full blur-[120px]" />
 
       <div className="z-10 flex min-h-0 w-full max-w-6xl flex-1 flex-col">
         <div className="flex-none space-y-6 px-6 pt-8 pb-4 sm:px-12 sm:pt-12">
@@ -286,7 +285,7 @@ function TokenSelectionContent() {
                 type="button"
                 disabled={isSavingConfig}
                 onClick={handleSave}
-                className="flex w-full cursor-pointer items-center justify-center gap-2 rounded-2xl bg-tertiary-600 px-6 py-3.5 text-sm font-bold tracking-wide text-white shadow-[0_0_20px_color-mix(in_srgb,var(--color-tertiary-500)_35%,transparent)] transition-all hover:bg-tertiary-500 hover:shadow-[0_0_30px_color-mix(in_srgb,var(--color-tertiary-500)_50%,transparent)] active:scale-95 disabled:cursor-not-allowed disabled:opacity-60 sm:w-auto"
+                className="bg-tertiary-600 hover:bg-tertiary-500 flex w-full cursor-pointer items-center justify-center gap-2 rounded-2xl px-6 py-3.5 text-sm font-bold tracking-wide text-white shadow-[0_0_20px_color-mix(in_srgb,var(--color-tertiary-500)_35%,transparent)] transition-all hover:shadow-[0_0_30px_color-mix(in_srgb,var(--color-tertiary-500)_50%,transparent)] active:scale-95 disabled:cursor-not-allowed disabled:opacity-60 sm:w-auto"
               >
                 {isSavingConfig ? (
                   <Loader className="h-5 w-5 animate-spin" aria-hidden />
@@ -363,7 +362,7 @@ function TokenSelectionContent() {
                       onClick={() => handleToggleToken(token.mint)}
                       className={`glass ghost-border group relative flex cursor-pointer flex-col justify-between overflow-hidden rounded-3xl p-5 transition-all duration-300 ${
                         isSelected
-                          ? "bg-tertiary-500/5 shadow-[0_0_50px_color-mix(in_srgb,var(--color-tertiary-500)_8%,transparent)] ring-tertiary-500 ring-2"
+                          ? "bg-tertiary-500/5 ring-tertiary-500 shadow-[0_0_50px_color-mix(in_srgb,var(--color-tertiary-500)_8%,transparent)] ring-2"
                           : ""
                       }`}
                     >

@@ -47,7 +47,7 @@ export default function ConfigPanel({
       className="p-8"
     >
       <div className="space-y-6">
-        <div className="border-border/50 bg-muted/20 rounded-2xl border p-4">
+        {/* <div className="border-border/50 bg-muted/20 rounded-2xl border p-4">
           <div className="flex flex-wrap items-start justify-between gap-4">
             <div className="flex gap-3">
               <div className="bg-muted flex h-10 w-10 items-center justify-center rounded-xl">
@@ -94,7 +94,7 @@ export default function ConfigPanel({
               봇 켜기
             </label>
           </div>
-        </div>
+        </div> */}
 
         <div>
           <label className="text-foreground mb-2 block text-sm font-medium">
@@ -294,7 +294,8 @@ export default function ConfigPanel({
               className="bg-muted border-border text-primary-600 focus:ring-primary-500 h-4 w-4 rounded"
             />
             <label className="text-foreground text-sm font-medium">
-              Dry Run 봇 구동 (실제 지갑 트랜잭션 수수료만 청구, 가상 포지션 수립)
+              Dry Run 봇 구동 (실제 지갑 트랜잭션 수수료만 청구, 가상 포지션
+              수립)
             </label>
           </div>
         </div>
@@ -307,7 +308,7 @@ export default function ConfigPanel({
           fullWidth
           icon={!saving && <Save size={18} />}
         >
-          {saving ? "저장 중..." : "변경 사항 저장 및 가동"}
+          {saving ? "저장 중..." : "변경 사항 저장 "}
         </Button>
       </div>
     </Card>
