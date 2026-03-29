@@ -21,7 +21,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className="h-full">
+    <html lang="en">
       <body
         className={`${jakartaSans.variable} bg-surface text-foreground flex h-full flex-col font-sans antialiased`}
       >
