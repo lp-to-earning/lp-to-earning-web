@@ -46,7 +46,24 @@ function normalizePosition(entry: unknown): Position {
   const pair = String(p.pair ?? "");
   const poolAddress = String(p.poolAddress ?? "");
 
-  return {
+  const tokenMintA = String(
+    p.tokenMintA ??
+      p.tokenMintAAddress ??
+      p.mintA ??
+      p.tokenAMint ??
+      p.token_mint_a ??
+      "",
+  ).trim();
+  const tokenMintB = String(
+    p.tokenMintB ??
+      p.tokenMintBAddress ??
+      p.mintB ??
+      p.tokenBMint ??
+      p.token_mint_b ??
+      "",
+  ).trim();
+
+  const base = {
     positionAddress: String(p.positionAddress ?? ""),
     nftMintAddress: String(p.nftMintAddress ?? ""),
     poolAddress: poolAddress || pair,
@@ -68,6 +85,16 @@ function normalizePosition(entry: unknown): Position {
     tokenSymbolA: String(p.tokenSymbolA ?? ""),
     tokenSymbolB: String(p.tokenSymbolB ?? ""),
   };
+
+  if (tokenMintA || tokenMintB) {
+    return {
+      ...base,
+      ...(tokenMintA ? { tokenMintA } : {}),
+      ...(tokenMintB ? { tokenMintB } : {}),
+    };
+  }
+
+  return base;
 }
 
 /**

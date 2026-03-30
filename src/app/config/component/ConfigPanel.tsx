@@ -11,7 +11,6 @@ interface ConfigPanelProps {
   saveConfig: () => void;
   saving: boolean;
   authToken: string | null;
-  hasPrivateKeyRegistered: boolean;
 }
 
 export default function ConfigPanel({
@@ -20,7 +19,6 @@ export default function ConfigPanel({
   saveConfig,
   saving,
   authToken,
-  hasPrivateKeyRegistered,
 }: ConfigPanelProps) {
   const router = useRouter();
   const { data: pools } = usePools(authToken);

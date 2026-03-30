@@ -12,17 +12,14 @@ import bs58 from "bs58";
 import Header from "@/components/Header";
 import Button from "@/components/Button";
 import DashboardPanel from "@/components/DashboardPanel";
-import { PrivateKeyCard } from "@/components/PrivateKeyCard";
+import { HotWalletCard } from "@/components/HotWalletCard";
+import { HotWalletBalancesCard } from "@/components/HotWalletBalancesCard";
 import { createPublicApi } from "@/lib/authed-axios";
 import {
   getConfig,
   updateConfig,
   type ConfigLoadResult,
 } from "@/api/config/config";
-import {
-  clearPrivateKeyRegistered,
-  markPrivateKeyRegistered,
-} from "@/lib/private-key-registration";
 
 export default function Home() {
   const { publicKey, signMessage, connected } = useWallet();
@@ -31,7 +28,6 @@ export default function Home() {
   const [loading, setLoading] = useState(false);
   const [botToggleLoading, setBotToggleLoading] = useState(false);
   const [configLoad, setConfigLoad] = useState<ConfigLoadResult | null>(null);
-  /** 서버 /config 응답 전에는 개인키 UI를 추측하지 않음 (localStorage 오판 방지) */
   const [configReady, setConfigReady] = useState(false);
 
   const [config, setConfig] = useState<Config>({
@@ -57,8 +53,6 @@ export default function Home() {
       const next = await getConfig();
       setConfig(next.config);
       setConfigLoad(next);
-      if (next.hasPrivateKey) markPrivateKeyRegistered();
-      else clearPrivateKeyRegistered();
     } catch (error) {
       console.error("Failed to fetch config", error);
       setConfigLoad(null);
@@ -67,12 +61,8 @@ export default function Home() {
     }
   }, []);
 
-  const hasPrivateKeyFromServer =
-    configReady && configLoad ? configLoad.hasPrivateKey : false;
-
-  const privateKeyUiState: boolean | undefined = !configReady
-    ? undefined
-    : (configLoad?.hasPrivateKey ?? false);
+  const isManagedWallet =
+    configReady && configLoad ? configLoad.isManagedWallet : false;
 
   const handleLogin = async () => {
     if (!publicKey || !signMessage) return;
@@ -150,7 +140,7 @@ export default function Home() {
   };
 
   const toggleBotActive = async () => {
-    if (!hasPrivateKeyFromServer) return;
+    if (!isManagedWallet) return;
     setBotToggleLoading(true);
     setMessage(null);
     const next = { ...config, isActive: !config.isActive };
@@ -233,11 +223,25 @@ export default function Home() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.2 }}
             >
-              <PrivateKeyCard
-                hasPrivateKey={privateKeyUiState}
-                onPrivateKeySaved={() => void fetchConfig()}
+              <HotWalletCard
+                hotWalletAddress={configLoad?.hotWalletAddress ?? null}
+                isManagedWallet={configLoad?.isManagedWallet ?? false}
+                configReady={configReady}
+                onAfterProvision={() => void fetchConfig()}
               />
             </motion.div>
+            {configLoad?.hotWalletAddress && configReady ? (
+              <motion.div
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.2 }}
+              >
+                <HotWalletBalancesCard
+                  enabled={!!token && !!configLoad?.isManagedWallet}
+                  variant="compact"
+                />
+              </motion.div>
+            ) : null}
             <motion.div
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
@@ -246,7 +250,7 @@ export default function Home() {
               <DashboardPanel
                 config={config}
                 token={token}
-                hasPrivateKeyRegistered={hasPrivateKeyFromServer}
+                isManagedWallet={isManagedWallet}
                 botToggleLoading={botToggleLoading}
                 onToggleBotActive={() => void toggleBotActive()}
               />

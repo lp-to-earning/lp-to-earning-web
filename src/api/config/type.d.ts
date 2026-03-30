@@ -14,8 +14,12 @@ interface Config {
 
 interface ConfigResponse {
   config: Config | null;
-  /** 서버: User.encryptedPrivateKey 존재 여부 */
+  /** 레거시: 서버에 사용자 개인키 저장 여부 (핫월렛 전환 전 API) */
   hasPrivateKey?: boolean;
+  /** 서버 관리 핫월렛 사용 여부 */
+  isManaged?: boolean;
+  /** 입금용 봇 전용 지갑 주소 */
+  hotWalletAddress?: string | null;
 }
 
 interface Token {

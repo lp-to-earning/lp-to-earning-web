@@ -14,13 +14,35 @@ const CONFIG_DEFAULTS: Config = {
 
 export interface ConfigLoadResult {
   config: Config;
+  /** 레거시 API 호환 */
   hasPrivateKey: boolean;
+  isManaged: boolean;
+  hotWalletAddress: string | null;
+  /** 풀·토큰·포지션·봇 토글 등에 사용 */
+  isManagedWallet: boolean;
+}
+
+function resolveManagedWalletReady(data: ConfigResponse): boolean {
+  if (data.isManaged === true) return true;
+  if (data.isManaged === false) return false;
+  const addr =
+    typeof data.hotWalletAddress === "string" &&
+    data.hotWalletAddress.trim().length > 0;
+  if (addr) return true;
+  return !!data.hasPrivateKey;
 }
 
 export async function getConfig(): Promise<ConfigLoadResult> {
   const { data } = await getAuthedAxios().get<ConfigResponse>("config");
 
   const hasPrivateKey = !!data.hasPrivateKey;
+  const isManaged = data.isManaged === true;
+  const hotWalletAddress =
+    typeof data.hotWalletAddress === "string" &&
+    data.hotWalletAddress.trim().length > 0
+      ? data.hotWalletAddress.trim()
+      : null;
+  const isManagedWallet = resolveManagedWalletReady(data);
 
   const sanitizeArr = (val: unknown) => {
     let arr = [];
@@ -38,7 +60,13 @@ export async function getConfig(): Promise<ConfigLoadResult> {
 
   const raw = data.config;
   if (!raw) {
-    return { config: { ...CONFIG_DEFAULTS }, hasPrivateKey };
+    return {
+      config: { ...CONFIG_DEFAULTS },
+      hasPrivateKey,
+      isManaged,
+      hotWalletAddress,
+      isManagedWallet,
+    };
   }
 
   const config = { ...CONFIG_DEFAULTS, ...raw };
@@ -58,7 +86,13 @@ export async function getConfig(): Promise<ConfigLoadResult> {
   config.dryRun =
     typeof raw.dryRun === "boolean" ? raw.dryRun : CONFIG_DEFAULTS.dryRun;
 
-  return { config, hasPrivateKey };
+  return {
+    config,
+    hasPrivateKey,
+    isManaged,
+    hotWalletAddress,
+    isManagedWallet,
+  };
 }
 
 /** `POST /api/config` — v2 예시 필드 + 기존 봇 파라미터 병행 전송 */

@@ -28,13 +28,13 @@ import { BotActiveSwitch } from "./BotActiveSwitch";
 export default function DashboardPanel({
   config,
   token,
-  hasPrivateKeyRegistered,
+  isManagedWallet,
   botToggleLoading,
   onToggleBotActive,
 }: {
   config: ConfigData;
   token: string | null;
-  hasPrivateKeyRegistered: boolean;
+  isManagedWallet: boolean;
   botToggleLoading: boolean;
   onToggleBotActive: () => void;
 }) {
@@ -48,7 +48,7 @@ export default function DashboardPanel({
       <Card
         title="봇 가동 현황"
         rightElement={
-          hasPrivateKeyRegistered ? (
+          isManagedWallet ? (
             <Link
               href="/positions"
               className={`${positionsNavBase} hover:text-foreground cursor-pointer`}
@@ -58,7 +58,7 @@ export default function DashboardPanel({
           ) : (
             <span
               className={`${positionsNavBase} text-muted-foreground/50 cursor-not-allowed`}
-              title="설정에서 봇 개인키를 등록한 뒤 이용할 수 있습니다."
+              title="서버 핫월렛이 준비된 뒤 이용할 수 있습니다."
               aria-disabled="true"
             >
               내 포지션 <ChevronRight className="h-4 w-4 shrink-0" />
@@ -69,7 +69,7 @@ export default function DashboardPanel({
         <div className="space-y-4">
           <BotActiveSwitch
             isActive={config.isActive}
-            disabled={!hasPrivateKeyRegistered}
+            disabled={!isManagedWallet}
             loading={botToggleLoading}
             onToggle={onToggleBotActive}
           />

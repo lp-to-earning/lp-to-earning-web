@@ -22,7 +22,7 @@ import Toast from "@/components/Toast";
 import { useSearchParams, usePathname, useRouter } from "next/navigation";
 import Image from "next/image";
 import SortButtonGroup from "@/components/SortButtonGroup";
-import { PrivateKeyRequiredModal } from "@/components/PrivateKeyRequiredModal";
+import { ManagedWalletRequiredModal } from "@/components/ManagedWalletRequiredModal";
 
 import { Suspense } from "react";
 
@@ -82,25 +82,25 @@ function TokenSelectionContent() {
     isSuccess: isConfigSuccess,
     error: configQueryError,
   } = useConfig(authToken, !!authToken);
-  const privateKeyOk =
-    isConfigSuccess && configData?.hasPrivateKey === true;
+  const walletReady =
+    isConfigSuccess && configData?.isManagedWallet === true;
 
   const {
     data: tokens,
     isLoading: isTokensLoading,
     isError: isTokensError,
     error: tokensQueryError,
-  } = useTokens({ enabled: privateKeyOk });
+  } = useTokens({ enabled: walletReady });
   const {
     data: pools,
     isLoading: isPoolsLoading,
     isError: isPoolsError,
     hasNextPage: poolsHasNextPage,
     isFetchingNextPage: isPoolsFetchingNextPage,
-  } = usePools(authToken, { enabled: privateKeyOk });
+  } = usePools(authToken, { enabled: walletReady });
 
   const poolsCatalogReady =
-    privateKeyOk &&
+    walletReady &&
     !isPoolsError &&
     !isPoolsLoading &&
     !isPoolsFetchingNextPage &&
@@ -300,10 +300,10 @@ function TokenSelectionContent() {
     );
   }
 
-  if (configData && !configData.hasPrivateKey) {
+  if (configData && !configData.isManagedWallet) {
     return (
       <main className="bg-surface-lowest relative min-h-[100dvh] antialiased">
-        <PrivateKeyRequiredModal />
+        <ManagedWalletRequiredModal />
       </main>
     );
   }

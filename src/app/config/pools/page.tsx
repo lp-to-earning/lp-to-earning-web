@@ -20,7 +20,7 @@ import Link from "next/link";
 import Toast from "@/components/Toast";
 import Image from "next/image";
 import SortButtonGroup from "@/components/SortButtonGroup";
-import { PrivateKeyRequiredModal } from "@/components/PrivateKeyRequiredModal";
+import { ManagedWalletRequiredModal } from "@/components/ManagedWalletRequiredModal";
 
 import { Suspense } from "react";
 
@@ -78,15 +78,15 @@ function PoolSelectionContent() {
     isSuccess: isConfigSuccess,
     error: configQueryError,
   } = useConfig(authToken, !!authToken);
-  const privateKeyOk =
-    isConfigSuccess && configData?.hasPrivateKey === true;
+  const walletReady =
+    isConfigSuccess && configData?.isManagedWallet === true;
 
   const {
     data: pools,
     isLoading: isPoolsLoading,
     isError: isPoolsError,
     error: poolsQueryError,
-  } = usePools(authToken, { enabled: privateKeyOk });
+  } = usePools(authToken, { enabled: walletReady });
   const serverConfig = configData?.config;
   const updateConfigMutation = useUpdateConfig();
   const isSavingConfig = updateConfigMutation.isPending;
@@ -230,10 +230,10 @@ function PoolSelectionContent() {
     );
   }
 
-  if (configData && !configData.hasPrivateKey) {
+  if (configData && !configData.isManagedWallet) {
     return (
       <main className="bg-surface-lowest relative min-h-[100dvh] antialiased">
-        <PrivateKeyRequiredModal />
+        <ManagedWalletRequiredModal />
       </main>
     );
   }

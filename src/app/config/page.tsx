@@ -12,7 +12,6 @@ import {
 import Header from "@/components/Header";
 import { consumeWalletMismatchHint } from "@/components/WalletSessionSync";
 import ConfigPanel from "@/app/config/component/ConfigPanel";
-import { PrivateKeyCard } from "@/components/PrivateKeyCard";
 import Link from "next/link";
 import Toast from "@/components/Toast";
 
@@ -35,19 +34,8 @@ export default function ConfigPage() {
     }
   }, [token]);
 
-  const { data: configData, isPending, isSuccess } = useConfig(
-    token,
-    connected,
-  );
+  const { data: configData } = useConfig(token, connected);
   const updateConfigMutation = useUpdateConfig();
-
-  const privateKeyUiState: boolean | undefined = isPending
-    ? undefined
-    : isSuccess && configData
-      ? configData.hasPrivateKey
-      : false;
-
-  const hasPrivateKeyRegistered = privateKeyUiState === true;
 
   const serverConfigPart = configData?.config;
 
@@ -152,20 +140,12 @@ export default function ConfigPage() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.2 }}
           >
-            <PrivateKeyCard hasPrivateKey={privateKeyUiState} />
-          </motion.div>
-          <motion.div
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.2 }}
-          >
             <ConfigPanel
               config={config}
               setConfig={setConfig}
               saveConfig={saveConfig}
               saving={updateConfigMutation.isPending}
               authToken={token}
-              hasPrivateKeyRegistered={hasPrivateKeyRegistered}
             />
           </motion.div>
         </div>

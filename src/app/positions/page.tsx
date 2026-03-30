@@ -7,7 +7,10 @@ import { useInfiniteReveal } from "@/hooks/useInfiniteReveal";
 import { usePositions } from "@/hooks/useByrealData";
 import { useConfig } from "@/hooks/useConfig";
 import { useStoredAuthToken } from "@/hooks/useStoredAuthToken";
-import { PrivateKeyRequiredModal } from "@/components/PrivateKeyRequiredModal";
+import { ManagedWalletRequiredModal } from "@/components/ManagedWalletRequiredModal";
+import { HotWalletBalancesCard } from "@/components/HotWalletBalancesCard";
+import { WithdrawSection } from "@/components/WithdrawSection";
+import { EmergencyRecoveryPanel } from "@/components/EmergencyRecoveryPanel";
 import { Card, CardContent } from "@/components/Card";
 import SortButtonGroup from "@/components/SortButtonGroup";
 import {
@@ -40,8 +43,8 @@ function PositionsContent() {
     isSuccess: isConfigSuccess,
     error: configQueryError,
   } = useConfig(authToken, !!authToken);
-  const privateKeyOk =
-    isConfigSuccess && configLoad?.hasPrivateKey === true;
+  const walletReady =
+    isConfigSuccess && configLoad?.isManagedWallet === true;
 
   const search = searchParams.get("q") || "";
   const sortField = searchParams.get("sort") || "default";
@@ -51,7 +54,7 @@ function PositionsContent() {
     authToken,
     1,
     1,
-    { enabled: privateKeyOk },
+    { enabled: walletReady },
   );
   const positions = useMemo(
     () => data?.positions ?? [],
@@ -197,11 +200,11 @@ function PositionsContent() {
     );
   }
 
-  if (configLoad && !configLoad.hasPrivateKey) {
+  if (configLoad && !configLoad.isManagedWallet) {
     return (
       <main className="relative min-h-screen">
-        <PrivateKeyRequiredModal
-          description="내 포지션 조회는 봇 지갑 개인키가 등록된 뒤에 이용할 수 있습니다. 설정 페이지에서 개인키를 등록해 주세요."
+        <ManagedWalletRequiredModal
+          description="내 포지션 조회는 서버 핫월렛이 연결된 뒤 이용할 수 있습니다."
         />
       </main>
     );
@@ -223,11 +226,25 @@ function PositionsContent() {
             onClick={() => refetch()}
             className="bg-muted hover:bg-muted/80 text-muted-foreground hover:text-foreground rounded-xl p-2 transition-all disabled:opacity-50"
             disabled={isRefetching}
+            title="포지션 새로고침"
+            aria-label="포지션 새로고침"
           >
             <RefreshCw
               className={`h-4 w-4 ${isRefetching ? "animate-spin" : ""}`}
             />
           </button>
+        </div>
+
+        <div className="mb-8 grid grid-cols-1 gap-6 lg:grid-cols-2">
+          <HotWalletBalancesCard enabled={walletReady} />
+          <WithdrawSection
+            authToken={authToken}
+            isManagedWallet={walletReady}
+          />
+        </div>
+
+        <div className="mb-8">
+          <EmergencyRecoveryPanel />
         </div>
 
         {/* Summary Aggregates */}
