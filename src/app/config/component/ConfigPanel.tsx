@@ -11,6 +11,8 @@ interface ConfigPanelProps {
   saveConfig: () => void;
   saving: boolean;
   authToken: string | null;
+  /** 풀·토큰 칩 X 클릭 시 즉시 서버 저장 */
+  persistConfigImmediately?: (next: Config, removed: "pool" | "token") => void;
 }
 
 export default function ConfigPanel({
@@ -19,6 +21,7 @@ export default function ConfigPanel({
   saveConfig,
   saving,
   authToken,
+  persistConfigImmediately,
 }: ConfigPanelProps) {
   const router = useRouter();
   const { data: pools } = usePools(authToken);
@@ -186,13 +189,17 @@ export default function ConfigPanel({
                     <span>{pool ? pool.name : poolId.slice(0, 8)}</span>
                     <button
                       type="button"
-                      onClick={() =>
-                        setConfig({
+                      disabled={saving}
+                      onClick={() => {
+                        const next = {
                           ...config,
                           pools: config.pools.filter((p) => p !== poolId),
-                        })
-                      }
-                      className="text-primary-400 hover:text-primary-300 cursor-pointer transition-colors"
+                        };
+                        setConfig(next);
+                        persistConfigImmediately?.(next, "pool");
+                      }}
+                      className="text-primary-400 hover:text-primary-300 cursor-pointer transition-colors disabled:cursor-not-allowed disabled:opacity-40"
+                      aria-label="풀 제거"
                     >
                       <X size={12} />
                     </button>
@@ -233,15 +240,19 @@ export default function ConfigPanel({
                     <span>{token ? token.symbol : mint.slice(0, 8)}</span>
                     <button
                       type="button"
-                      onClick={() =>
-                        setConfig({
+                      disabled={saving}
+                      onClick={() => {
+                        const next = {
                           ...config,
                           autoRechargeTokens: config.autoRechargeTokens.filter(
                             (t) => t !== mint,
                           ),
-                        })
-                      }
-                      className="text-tertiary-400 hover:text-tertiary-300 cursor-pointer transition-colors"
+                        };
+                        setConfig(next);
+                        persistConfigImmediately?.(next, "token");
+                      }}
+                      className="text-tertiary-400 hover:text-tertiary-300 cursor-pointer transition-colors disabled:cursor-not-allowed disabled:opacity-40"
+                      aria-label="토큰 제거"
                     >
                       <X size={12} />
                     </button>

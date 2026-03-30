@@ -1,10 +1,11 @@
 "use client";
 
 import { useWallet } from "@solana/wallet-adapter-react";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 import { motion, AnimatePresence } from "framer-motion";
 import { AlertCircle, CheckCircle2 } from "lucide-react";
-import { useConfig, useUpdateConfig } from "@/hooks/useConfig";
+import { configKeys, useConfig, useUpdateConfig } from "@/hooks/useConfig";
 import {
   useSetAuthToken,
   useStoredAuthToken,
@@ -25,6 +26,13 @@ export default function ConfigPage() {
     text: string;
   } | null>(null);
   const [showWalletSwitchHint, setShowWalletSwitchHint] = useState(false);
+  const [chipToast, setChipToast] = useState<{
+    show: boolean;
+    message: string;
+    type: "success" | "error";
+  }>({ show: false, message: "", type: "success" });
+
+  const queryClient = useQueryClient();
 
   useEffect(() => {
     if (!token) {
@@ -74,6 +82,35 @@ export default function ConfigPage() {
         },
     });
   };
+
+  const persistConfigImmediately = useCallback(
+    (next: Config, removed: "pool" | "token") => {
+      if (!token) return;
+      updateConfigMutation.mutate(next, {
+        onSuccess: () => {
+          setLocalConfig(null);
+          setChipToast({
+            show: true,
+            type: "success",
+            message:
+              removed === "pool"
+                ? "풀을 목록에서 제거해 저장했습니다."
+                : "토큰을 목록에서 제거해 저장했습니다.",
+          });
+        },
+        onError: () => {
+          setLocalConfig(null);
+          void queryClient.invalidateQueries({ queryKey: configKeys.all });
+          setChipToast({
+            show: true,
+            type: "error",
+            message: "제거 저장에 실패했습니다. 다시 시도해 주세요.",
+          });
+        },
+      });
+    },
+    [token, updateConfigMutation, queryClient],
+  );
 
   const logout = () => {
     setAuthToken(null);
@@ -146,6 +183,7 @@ export default function ConfigPage() {
               saveConfig={saveConfig}
               saving={updateConfigMutation.isPending}
               authToken={token}
+              persistConfigImmediately={persistConfigImmediately}
             />
           </motion.div>
         </div>
@@ -155,6 +193,15 @@ export default function ConfigPage() {
           message="설정을 저장하는 중..."
           type="loading"
           onClose={() => {}}
+        />
+        <Toast
+          show={chipToast.show}
+          message={chipToast.message}
+          type={chipToast.type}
+          duration={2500}
+          onClose={() =>
+            setChipToast((s) => ({ ...s, show: false }))
+          }
         />
       </div>
     </main>
