@@ -8,14 +8,10 @@ import {
   useHotWalletBalances,
 } from "@/hooks/useHotWalletBalances";
 import { usePools, usePositions, useTokens } from "@/hooks/useByrealData";
-import {
-  postPartialWithdraw,
-  postWithdrawAll,
-} from "@/api/remote/withdraw";
+import { postPartialWithdraw, postWithdrawAll } from "@/api/remote/withdraw";
 import { solscanTxUrl, solscanTokenUrl } from "@/lib/solscan";
 import { formatAddressShort } from "@/api/remote/balances";
 import Link from "next/link";
-import { buildWithdrawSplMintOptions } from "@/lib/position-withdraw-mints";
 import { Card } from "./Card";
 import {
   Loader2,
@@ -58,13 +54,13 @@ export function WithdrawSection({
 
   const { data: balanceData } = useHotWalletBalances(catalogEnabled);
 
-  const { data: positionsResult, isLoading: positionsLoading } = usePositions(
+  const { isLoading: positionsLoading } = usePositions(
     authToken,
     1,
     80,
     { enabled: catalogEnabled },
   );
-  const { data: pools = [], isLoading: poolsLoading } = usePools(authToken, {
+  const { isLoading: poolsLoading } = usePools(authToken, {
     enabled: catalogEnabled,
   });
   const { data: tokens = [], isLoading: tokensLoading } = useTokens({
@@ -79,11 +75,15 @@ export function WithdrawSection({
   const [error, setError] = useState<string | null>(null);
   const [lastTxHash, setLastTxHash] = useState<string | null>(null);
 
-  const positions = positionsResult?.positions ?? [];
-  const splMintOptions = useMemo(
-    () => buildWithdrawSplMintOptions(positions, pools, tokens),
-    [positions, pools, tokens],
-  );
+  const splMintOptions = useMemo((): { mint: string; label: string }[] => {
+    const walletTokens = balanceData?.tokens ?? [];
+    return walletTokens.map((t) => {
+      const sym =
+        tokens.find((x) => x.mint === t.mint)?.symbol ||
+        `${t.mint.slice(0, 4)}…${t.mint.slice(-4)}`;
+      return { mint: t.mint, label: sym };
+    });
+  }, [balanceData?.tokens, tokens]);
 
   const splCatalogLoading =
     kind === "spl" &&
@@ -272,14 +272,17 @@ export function WithdrawSection({
                 </div>
                 {solBalance !== null ? (
                   <p className="text-muted-foreground mt-1 text-xs">
-                    조회 잔고: {solBalance.toLocaleString(undefined, { maximumFractionDigits: 9 })}{" "}
+                    조회 잔고:{" "}
+                    {solBalance.toLocaleString(undefined, {
+                      maximumFractionDigits: 9,
+                    })}{" "}
                     SOL
                   </p>
                 ) : null}
               </div>
             ) : splCatalogLoading ? (
               <div className="text-muted-foreground flex items-center gap-2 text-sm">
-                <Loader2 className="h-4 w-4 animate-spin shrink-0" />
+                <Loader2 className="h-4 w-4 shrink-0 animate-spin" />
                 포지션·카탈로그를 불러오는 중…
               </div>
             ) : splMintOptions.length === 0 ? (
@@ -383,7 +386,7 @@ export function WithdrawSection({
 
       <Card
         title={
-          <span className="flex items-center gap-2 text-lg font-bold normal-case text-error-400">
+          <span className="text-error-400 flex items-center gap-2 text-lg font-bold normal-case">
             <AlertTriangle className="h-5 w-5" />
             위험 구역
           </span>
@@ -398,7 +401,7 @@ export function WithdrawSection({
           type="button"
           onClick={() => void handleWithdrawAll()}
           disabled={disabled || loading !== null}
-          className="flex items-center justify-center gap-2 rounded-xl bg-error-600 px-6 py-3.5 text-sm font-bold text-white shadow-lg shadow-error-500/20 transition-all hover:bg-error-500 disabled:cursor-not-allowed disabled:opacity-50"
+          className="bg-error-600 shadow-error-500/20 hover:bg-error-500 flex items-center justify-center gap-2 rounded-xl px-6 py-3.5 text-sm font-bold text-white shadow-lg transition-all disabled:cursor-not-allowed disabled:opacity-50"
         >
           {loading === "all" ? (
             <Loader2 className="h-5 w-5 animate-spin" aria-hidden />
