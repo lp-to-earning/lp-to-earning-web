@@ -8,7 +8,7 @@ import {
   useHotWalletBalances,
 } from "@/hooks/useHotWalletBalances";
 import { usePools, usePositions, useTokens } from "@/hooks/useByrealData";
-import { postPartialWithdraw, postWithdrawAll } from "@/api/remote/withdraw";
+import { postPartialWithdraw, postWithdrawAll, postClaimFees } from "@/api/remote/withdraw";
 import { solscanTxUrl, solscanTokenUrl } from "@/lib/solscan";
 import { formatAddressShort } from "@/api/remote/balances";
 import Link from "next/link";
@@ -18,6 +18,7 @@ import {
   ArrowDownToLine,
   AlertTriangle,
   ExternalLink,
+  Sprout,
 } from "lucide-react";
 import Button from "./Button";
 
@@ -71,9 +72,10 @@ export function WithdrawSection({
   const [mint, setMint] = useState("");
   const [amount, setAmount] = useState("");
   const [amountSol, setAmountSol] = useState("");
-  const [loading, setLoading] = useState<"partial" | "all" | null>(null);
+  const [loading, setLoading] = useState<"partial" | "all" | "claim" | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [lastTxHash, setLastTxHash] = useState<string | null>(null);
+  const [claimSuccess, setClaimSuccess] = useState<string | null>(null);
 
   const splMintOptions = useMemo((): { mint: string; label: string }[] => {
     const walletTokens = balanceData?.tokens ?? [];
@@ -118,6 +120,39 @@ export function WithdrawSection({
     void queryClient.invalidateQueries({ queryKey: configKeys.all });
     void queryClient.invalidateQueries({ queryKey: ["positions"] });
     void queryClient.invalidateQueries({ queryKey: hotWalletBalanceKeys.all });
+  }
+
+  async function handleClaimFees() {
+    setError(null);
+    setClaimSuccess(null);
+    if (disabled) return;
+
+    // 수익이 있는 포지션의 nftMintAddress만 필터링
+    const positions = queryClient.getQueryData<{
+      data: { positions: { nftMintAddress: string; earnedUsd: number; bonusUsd: number }[] };
+    }>(["positions"]);
+    const mints = (positions?.data?.positions ?? [])
+      .filter((p) => (p.earnedUsd ?? 0) + (p.bonusUsd ?? 0) > 0)
+      .map((p) => p.nftMintAddress)
+      .filter(Boolean);
+
+    if (mints.length === 0) {
+      setError("수확 가능한 수익이 있는 포지션이 없습니다.");
+      return;
+    }
+
+    setLoading("claim");
+    try {
+      const res = await postClaimFees(mints);
+      if (res.success) {
+        setClaimSuccess(`${mints.length}개 포지션에서 수수료와 보너스를 수확했습니다.`);
+        void queryClient.invalidateQueries({ queryKey: ["positions"] });
+      }
+    } catch (e: unknown) {
+      setError(e instanceof Error ? e.message : "수수료 수확에 실패했습니다.");
+    } finally {
+      setLoading(null);
+    }
   }
 
   function handleMaxSol() {
@@ -206,6 +241,42 @@ export function WithdrawSection({
 
   return (
     <div className="space-y-6">
+      {/* 수수료 & 보너스 수확 */}
+      <Card
+        title={
+          <span className="flex items-center gap-2 text-lg font-bold normal-case">
+            <Sprout className="text-tertiary-400 h-5 w-5" />
+            수수료 & 보너스 수확
+          </span>
+        }
+        className="p-6 sm:p-8"
+      >
+        {disabled ? (
+          <p className="text-muted-foreground text-sm">
+            핫월렛이 준비되고 로그인된 뒤 수확 기능을 사용할 수 있습니다.
+          </p>
+        ) : (
+          <div className="space-y-4">
+            <p className="text-muted-foreground text-sm leading-relaxed">
+              현재 포지션에서 쌓인 거래 수수료(Fee)와 카피 보너스(Bonus)를
+              지갑으로 회수합니다. 수익이 있는 포지션을 자동으로 찾아 청구합니다.
+            </p>
+            {claimSuccess ? (
+              <div className="border-tertiary-500/30 bg-tertiary-500/10 text-tertiary-200 rounded-xl border px-4 py-3 text-sm">
+                ✅ {claimSuccess}
+              </div>
+            ) : null}
+            <Button
+              variant="secondary"
+              onClick={() => void handleClaimFees()}
+              isLoading={loading === "claim"}
+              disabled={loading !== null}
+            >
+              {loading === "claim" ? "수확 중…" : "수수료 & 보너스 수확하기"}
+            </Button>
+          </div>
+        )}
+      </Card>
       <Card
         title={
           <span className="flex items-center gap-2 text-lg font-bold normal-case">

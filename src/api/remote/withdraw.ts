@@ -10,6 +10,11 @@ export interface WithdrawResponse {
   txHash?: string;
 }
 
+export interface ClaimFeesResponse {
+  success: boolean;
+  message: string;
+}
+
 export async function postPartialWithdraw(
   body: PartialWithdrawBody,
 ): Promise<WithdrawResponse> {
@@ -27,3 +32,14 @@ export async function postWithdrawAll(): Promise<WithdrawResponse> {
   );
   return data;
 }
+
+export async function postClaimFees(
+  nftMints: string[],
+): Promise<ClaimFeesResponse> {
+  const { data } = await getAuthedAxios().post<ClaimFeesResponse>(
+    "positions/claim",
+    { nftMints },
+  );
+  return data;
+}
+
