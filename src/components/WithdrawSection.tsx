@@ -8,7 +8,11 @@ import {
   useHotWalletBalances,
 } from "@/hooks/useHotWalletBalances";
 import { usePools, usePositions, useTokens } from "@/hooks/useByrealData";
-import { postPartialWithdraw, postWithdrawAll, postClaimFees } from "@/api/remote/withdraw";
+import {
+  postPartialWithdraw,
+  postWithdrawAll,
+  postClaimFees,
+} from "@/api/remote/withdraw";
 import { solscanTxUrl, solscanTokenUrl } from "@/lib/solscan";
 import { formatAddressShort } from "@/api/remote/balances";
 import Link from "next/link";
@@ -38,6 +42,8 @@ function labelForSplWithdrawOption(
 interface WithdrawSectionProps {
   authToken: string | null;
   isManagedWallet: boolean;
+  positions?: Position[];
+  positionsLoading?: boolean;
 }
 
 function formatMaxAmount(n: number, maxDecimals: number): string {
@@ -49,18 +55,14 @@ function formatMaxAmount(n: number, maxDecimals: number): string {
 export function WithdrawSection({
   authToken,
   isManagedWallet,
+  positions = [],
+  positionsLoading = false,
 }: WithdrawSectionProps) {
   const queryClient = useQueryClient();
   const catalogEnabled = isManagedWallet && !!authToken;
 
   const { data: balanceData } = useHotWalletBalances(catalogEnabled);
 
-  const { isLoading: positionsLoading } = usePositions(
-    authToken,
-    1,
-    80,
-    { enabled: catalogEnabled },
-  );
   const { isLoading: poolsLoading } = usePools(authToken, {
     enabled: catalogEnabled,
   });
@@ -72,7 +74,9 @@ export function WithdrawSection({
   const [mint, setMint] = useState("");
   const [amount, setAmount] = useState("");
   const [amountSol, setAmountSol] = useState("");
-  const [loading, setLoading] = useState<"partial" | "all" | "claim" | null>(null);
+  const [loading, setLoading] = useState<"partial" | "all" | "claim" | null>(
+    null,
+  );
   const [error, setError] = useState<string | null>(null);
   const [lastTxHash, setLastTxHash] = useState<string | null>(null);
   const [claimSuccess, setClaimSuccess] = useState<string | null>(null);
@@ -122,19 +126,32 @@ export function WithdrawSection({
     void queryClient.invalidateQueries({ queryKey: hotWalletBalanceKeys.all });
   }
 
+  const hasAnyProfit = useMemo(() => {
+    return positions.some((p) => {
+      const earned = parseFloat(p.earnedUsd || "0");
+      const bonus = parseFloat(p.bonusUsd || "0");
+      return earned + bonus > 0;
+    });
+  }, [positions]);
+
   async function handleClaimFees() {
     setError(null);
     setClaimSuccess(null);
     if (disabled) return;
 
-    // 수익이 있는 포지션의 nftMintAddress만 필터링
-    const positions = queryClient.getQueryData<{
-      data: { positions: { nftMintAddress: string; earnedUsd: number; bonusUsd: number }[] };
-    }>(["positions"]);
-    const mints = (positions?.data?.positions ?? [])
-      .filter((p) => (p.earnedUsd ?? 0) + (p.bonusUsd ?? 0) > 0)
-      .map((p) => p.nftMintAddress)
+    // 수익이 있는 포지션의 nftMintAddress(또는 positionAddress)만 필터링
+    console.log("포지션 데이터 확인:", positions);
+    const mints = positions
+      .filter((p) => {
+        const earned = parseFloat(p.earnedUsd || "0");
+        const bonus = parseFloat(p.bonusUsd || "0");
+        const hasProfit = earned + bonus > 0;
+        return hasProfit;
+      })
+      .map((p) => p.nftMintAddress || p.positionAddress)
       .filter(Boolean);
+
+    console.log("수확 대상 Mints:", mints);
 
     if (mints.length === 0) {
       setError("수확 가능한 수익이 있는 포지션이 없습니다.");
@@ -145,7 +162,9 @@ export function WithdrawSection({
     try {
       const res = await postClaimFees(mints);
       if (res.success) {
-        setClaimSuccess(`${mints.length}개 포지션에서 수수료와 보너스를 수확했습니다.`);
+        setClaimSuccess(
+          `${mints.length}개 포지션에서 수수료와 보너스를 수확했습니다.`,
+        );
         void queryClient.invalidateQueries({ queryKey: ["positions"] });
       }
     } catch (e: unknown) {
@@ -259,7 +278,8 @@ export function WithdrawSection({
           <div className="space-y-4">
             <p className="text-muted-foreground text-sm leading-relaxed">
               현재 포지션에서 쌓인 거래 수수료(Fee)와 카피 보너스(Bonus)를
-              지갑으로 회수합니다. 수익이 있는 포지션을 자동으로 찾아 청구합니다.
+              지갑으로 회수합니다. 수익이 있는 포지션을 자동으로 찾아
+              청구합니다.
             </p>
             {claimSuccess ? (
               <div className="border-tertiary-500/30 bg-tertiary-500/10 text-tertiary-200 rounded-xl border px-4 py-3 text-sm">
@@ -270,9 +290,15 @@ export function WithdrawSection({
               variant="secondary"
               onClick={() => void handleClaimFees()}
               isLoading={loading === "claim"}
-              disabled={loading !== null}
+              // disabled={loading !== null || positionsLoading || !hasAnyProfit}
             >
-              {loading === "claim" ? "수확 중…" : "수수료 & 보너스 수확하기"}
+              {positionsLoading
+                ? "포지션 불러오는 중…"
+                : loading === "claim"
+                  ? "수확 중…"
+                  : !hasAnyProfit
+                    ? "수확할 수익 없음"
+                    : "수수료 & 보너스 수확하기"}
             </Button>
           </div>
         )}

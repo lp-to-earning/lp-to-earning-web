@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { useSearchParams, usePathname, useRouter } from "next/navigation";
 import Link from "next/link";
 import { useInfiniteReveal } from "@/hooks/useInfiniteReveal";
@@ -25,6 +25,8 @@ import {
   Gift,
   Activity,
   Loader,
+  Share2,
+  Check,
 } from "lucide-react";
 import { motion } from "framer-motion";
 
@@ -43,8 +45,7 @@ function PositionsContent() {
     isSuccess: isConfigSuccess,
     error: configQueryError,
   } = useConfig(authToken, !!authToken);
-  const walletReady =
-    isConfigSuccess && configLoad?.isManagedWallet === true;
+  const walletReady = isConfigSuccess && configLoad?.isManagedWallet === true;
 
   const search = searchParams.get("q") || "";
   const sortField = searchParams.get("sort") || "default";
@@ -56,10 +57,7 @@ function PositionsContent() {
     1,
     { enabled: walletReady },
   );
-  const positions = useMemo(
-    () => data?.positions ?? [],
-    [data?.positions],
-  );
+  const positions = useMemo(() => data?.positions ?? [], [data?.positions]);
   const summary = useMemo(() => {
     const s = data?.summary;
     if (s) {
@@ -89,6 +87,28 @@ function PositionsContent() {
       { totalLiquidity: 0, totalEarned: 0, totalPnL: 0, totalBonus: 0 },
     );
   }, [data?.summary, positions]);
+  const [copied, setCopied] = useState(false);
+
+  const handleShare = () => {
+    const address = configLoad?.hotWalletAddress || "";
+    const shortAddress = address
+      ? `${address.slice(0, 4)}...${address.slice(-4)}`
+      : "Unknown";
+
+    const text = `주소 ${shortAddress}
+총 예치 유동성
+$${summary.totalLiquidity.toFixed(2)}
+총 누적 수익
+$${summary.totalEarned.toFixed(4)}
+총 손익 (PnL)
+$${summary.totalPnL.toFixed(2)}
+총 보너스 수익
+$${summary.totalBonus.toFixed(4)}`;
+
+    void navigator.clipboard.writeText(text);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
 
   const sortItems = [
     { value: "default", label: "기본 정렬" },
@@ -174,7 +194,9 @@ function PositionsContent() {
     return (
       <main className="flex min-h-screen flex-col items-center justify-center p-6 sm:p-12">
         <Loader className="text-primary-400 h-10 w-10 animate-spin" />
-        <p className="text-muted-foreground mt-4 text-sm">설정을 불러오는 중…</p>
+        <p className="text-muted-foreground mt-4 text-sm">
+          설정을 불러오는 중…
+        </p>
       </main>
     );
   }
@@ -203,9 +225,7 @@ function PositionsContent() {
   if (configLoad && !configLoad.isManagedWallet) {
     return (
       <main className="relative min-h-screen">
-        <ManagedWalletRequiredModal
-          description="내 포지션 조회는 서버 핫월렛이 연결된 뒤 이용할 수 있습니다."
-        />
+        <ManagedWalletRequiredModal description="내 포지션 조회는 서버 핫월렛이 연결된 뒤 이용할 수 있습니다." />
       </main>
     );
   }
@@ -240,6 +260,8 @@ function PositionsContent() {
           <WithdrawSection
             authToken={authToken}
             isManagedWallet={walletReady}
+            positions={positions}
+            positionsLoading={isLoading}
           />
         </div>
 
@@ -256,6 +278,22 @@ function PositionsContent() {
                   <Activity className="text-primary-400 h-4 w-4" /> 포지션 종합
                   요약
                 </div>
+              }
+              rightElement={
+                <button
+                  onClick={handleShare}
+                  className="bg-tertiary-500/10 text-tertiary-400 hover:bg-tertiary-500/20 flex items-center gap-1.5 rounded-xl px-3 py-1.5 text-xs font-bold transition-all active:scale-95"
+                >
+                  {copied ? (
+                    <>
+                      <Check size={14} /> 복사됨!
+                    </>
+                  ) : (
+                    <>
+                      <Share2 size={14} /> 자랑하기
+                    </>
+                  )}
+                </button>
               }
             >
               <div className="divide-border/30 mt-1 grid grid-cols-2 gap-4 md:grid-cols-4 md:divide-x">
@@ -387,7 +425,6 @@ function PositionsContent() {
                         iconBgClass="bg-yellow-500/10"
                         iconColorClass="text-yellow-400"
                       />
-
 
                       <div className="border-border/40 mt-3 flex items-center justify-between border-t pt-2 text-xs">
                         <span className="text-muted-foreground font-mono">

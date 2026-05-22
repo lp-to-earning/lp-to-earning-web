@@ -1,7 +1,7 @@
 "use client";
 
 import { useWallet } from "@solana/wallet-adapter-react";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import {
   useSetAuthToken,
   useStoredAuthToken,
@@ -12,9 +12,16 @@ import bs58 from "bs58";
 import Header from "@/components/Header";
 import Button from "@/components/Button";
 import DashboardPanel from "@/components/DashboardPanel";
+import { Card } from "@/components/Card";
 import { HotWalletCard } from "@/components/HotWalletCard";
 import { HotWalletBalancesCard } from "@/components/HotWalletBalancesCard";
 import { createPublicApi } from "@/lib/authed-axios";
+import { usePositions } from "@/hooks/useByrealData";
+import {
+  Share2,
+  Check,
+  Activity,
+} from "lucide-react";
 import {
   getConfig,
   updateConfig,
@@ -163,6 +170,55 @@ export default function Home() {
     }
   };
 
+  const { data: positionsData } = usePositions(token, 1, 100, {
+    enabled: !!token,
+  });
+
+  const summary = useMemo(() => {
+    const s = positionsData?.summary;
+    const positions = positionsData?.positions ?? [];
+    if (s) {
+      return {
+        totalLiquidity: s.totalLiquidityUsd ?? 0,
+        totalEarned: s.totalEarnedUsd ?? 0,
+        totalPnL: s.totalPnlUsd ?? 0,
+        totalBonus: s.totalBonusUsd ?? 0,
+      };
+    }
+    return positions.reduce(
+      (acc, pos) => {
+        acc.totalLiquidity += parseFloat(pos.liquidityUsd || "0");
+        acc.totalEarned += parseFloat(pos.earnedUsd || "0");
+        acc.totalPnL += parseFloat(pos.pnlUsd || "0");
+        acc.totalBonus += parseFloat(pos.bonusUsd || "0");
+        return acc;
+      },
+      { totalLiquidity: 0, totalEarned: 0, totalPnL: 0, totalBonus: 0 },
+    );
+  }, [positionsData]);
+
+  const [copied, setCopied] = useState(false);
+  const handleShare = () => {
+    const address = configLoad?.hotWalletAddress || "";
+    const shortAddress = address
+      ? `${address.slice(0, 4)}...${address.slice(-4)}`
+      : "Unknown";
+
+    const text = `주소 ${shortAddress}
+총 예치 유동성
+$${summary.totalLiquidity.toFixed(2)}
+총 누적 수익
+$${summary.totalEarned.toFixed(4)}
+총 손익 (PnL)
+$${summary.totalPnL.toFixed(2)}
+총 보너스 수익
+$${summary.totalBonus.toFixed(4)}`;
+
+    void navigator.clipboard.writeText(text);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
+
   return (
     <main className="flex min-h-screen flex-col items-center justify-center p-6 sm:p-12">
       <div className="w-full max-w-5xl">
@@ -242,6 +298,81 @@ export default function Home() {
                 />
               </motion.div>
             ) : null}
+
+            {token && (
+              <motion.div
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.2, delay: 0.1 }}
+                className="mb-6"
+              >
+                <Card
+                  title={
+                    <div className="flex items-center gap-1.5 text-sm">
+                      <Activity className="text-primary-400 h-4 w-4" /> 포지션
+                      종합 요약
+                    </div>
+                  }
+                  rightElement={
+                    <button
+                      onClick={handleShare}
+                      className="bg-tertiary-500/10 text-tertiary-400 hover:bg-tertiary-500/20 flex items-center gap-1.5 rounded-xl px-3 py-1.5 text-xs font-bold transition-all active:scale-95"
+                    >
+                      {copied ? (
+                        <>
+                          <Check size={14} /> 복사됨!
+                        </>
+                      ) : (
+                        <>
+                          <Share2 size={14} /> 자랑하기
+                        </>
+                      )}
+                    </button>
+                  }
+                >
+                  <div className="divide-border/30 mt-1 grid grid-cols-2 gap-4 md:grid-cols-4 md:divide-x">
+                    <div className="flex flex-col">
+                      <span className="text-muted-foreground text-xs">
+                        총 예치 유동성
+                      </span>
+                      <span className="text-primary-400 mt-1 text-xl font-bold">
+                        ${summary.totalLiquidity.toFixed(2)}
+                      </span>
+                    </div>
+                    <div className="flex flex-col md:pl-4">
+                      <span className="text-muted-foreground text-xs">
+                        총 누적 수익
+                      </span>
+                      <span className="text-tertiary-400 mt-1 text-xl font-bold">
+                        ${summary.totalEarned.toFixed(4)}
+                      </span>
+                    </div>
+                    <div className="flex flex-col md:pl-4">
+                      <span className="text-muted-foreground text-xs">
+                        총 손익 (PnL)
+                      </span>
+                      <span
+                        className={`mt-1 text-xl font-bold ${
+                          summary.totalPnL >= 0
+                            ? "text-tertiary-400"
+                            : "text-error-400"
+                        }`}
+                      >
+                        ${summary.totalPnL.toFixed(2)}
+                      </span>
+                    </div>
+                    <div className="flex flex-col md:pl-4">
+                      <span className="text-muted-foreground text-xs">
+                        총 보너스 수익
+                      </span>
+                      <span className="mt-1 text-xl font-bold text-yellow-400">
+                        ${summary.totalBonus.toFixed(4)}
+                      </span>
+                    </div>
+                  </div>
+                </Card>
+              </motion.div>
+            )}
             <motion.div
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
