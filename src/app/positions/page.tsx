@@ -7,6 +7,7 @@ import { useInfiniteReveal } from "@/hooks/useInfiniteReveal";
 import { usePositions } from "@/hooks/useByrealData";
 import { useConfig } from "@/hooks/useConfig";
 import { useStoredAuthToken } from "@/hooks/useStoredAuthToken";
+import { postClosePosition } from "@/api/remote/withdraw";
 import { ManagedWalletRequiredModal } from "@/components/ManagedWalletRequiredModal";
 import { HotWalletBalancesCard } from "@/components/HotWalletBalancesCard";
 import { WithdrawSection } from "@/components/WithdrawSection";
@@ -38,6 +39,7 @@ function PositionsContent() {
   const { replace } = useRouter();
 
   const authToken = useStoredAuthToken();
+  const [closingNft, setClosingNft] = useState<string | null>(null);
   const {
     data: configLoad,
     isPending: isConfigPending,
@@ -108,6 +110,33 @@ $${summary.totalBonus.toFixed(4)}`;
     void navigator.clipboard.writeText(text);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
+  };
+
+  const handleClosePosition = async (nftMint: string) => {
+    if (!nftMint) return;
+    const ok = window.confirm(
+      "정말 이 LP 포지션을 종료하시겠습니까? 담보로 제공된 자산들이 지갑으로 회수됩니다."
+    );
+    if (!ok) return;
+
+    setClosingNft(nftMint);
+    try {
+      const res = await postClosePosition(nftMint);
+      if (res.success) {
+        alert("포지션이 성공적으로 종료되었습니다.");
+        void refetch();
+      } else {
+        alert(`종료 실패: ${res.message || "알 수 없는 오류"}`);
+      }
+    } catch (e: unknown) {
+      alert(
+        e instanceof Error
+          ? e.message
+          : "포지션 종료 중 오류가 발생했습니다."
+      );
+    } finally {
+      setClosingNft(null);
+    }
   };
 
   const sortItems = [
@@ -433,15 +462,31 @@ $${summary.totalBonus.toFixed(4)}`;
                             ? pos.nftMintAddress.slice(0, 8)
                             : "ID-none"}
                         </span>
-                        <span
-                          className={`rounded-full px-2 py-0.5 text-[10px] ${
-                            pos.status === 0
-                              ? "border-tertiary-500/30 bg-tertiary-500/10 text-tertiary-400 border"
-                              : "border-error-500/30 bg-error-500/10 text-error-400 border"
-                          }`}
-                        >
-                          {pos.status === 0 ? "Active" : "Closed"}
-                        </span>
+                        <div className="flex items-center gap-2">
+                          <span
+                            className={`rounded-full px-2 py-0.5 text-[10px] ${
+                              pos.status === 0
+                                ? "border-tertiary-500/30 bg-tertiary-500/10 text-tertiary-400 border"
+                                : "border-error-500/30 bg-error-500/10 text-error-400 border"
+                            }`}
+                          >
+                            {pos.status === 0 ? "Active" : "Closed"}
+                          </span>
+                          {pos.status === 0 && (
+                            <button
+                              type="button"
+                              onClick={() => void handleClosePosition(pos.nftMintAddress)}
+                              disabled={closingNft !== null}
+                              className="border-error-500/40 text-error-400 hover:bg-error-500/10 rounded-lg border px-2 py-0.5 text-[10px] font-bold transition-all disabled:cursor-not-allowed disabled:opacity-50"
+                            >
+                              {closingNft === pos.nftMintAddress ? (
+                                <Loader size={10} className="animate-spin" />
+                              ) : (
+                                "종료"
+                              )}
+                            </button>
+                          )}
+                        </div>
                       </div>
                     </div>
                   </Card>

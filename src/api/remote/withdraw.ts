@@ -33,12 +33,27 @@ export async function postWithdrawAll(): Promise<WithdrawResponse> {
   return data;
 }
 
+export interface ClosePositionResponse {
+  success: boolean;
+  message: string;
+}
+
 export async function postClaimFees(
   nftMints: string[],
 ): Promise<ClaimFeesResponse> {
   const { data } = await getAuthedAxios().post<ClaimFeesResponse>(
     "positions/claim",
     { nftMints },
+  );
+  return data;
+}
+
+export async function postClosePosition(
+  nftMint: string,
+): Promise<ClosePositionResponse> {
+  const { data } = await getAuthedAxios().post<ClosePositionResponse>(
+    "positions/close",
+    { nftMint },
   );
   return data;
 }
